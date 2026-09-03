@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nature Library - My KU My Nature</title>
+
+    <!-- แท็บเบราว์เซอร์ (Favicon) -->
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f8f4; color: #263528; transition: background 0.3s, color 0.3s; }
+        body.dark-mode { background: #121813; color: #e0e6e1; }
+        body.dark-mode header, body.dark-mode .sidebar { background: #1e2620; border-color: #2e3b30; }
+        body.dark-mode .search, body.dark-mode .category { background: #2a352c; border-color: #3e4e40; color: #ffffff; }
+        body.dark-mode .plant-card { background: #1e2620; }
+        body.dark-mode .sidebar a { color: #e0e6e1; }
+        body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
+        body.dark-mode .fav-btn { background: rgba(30, 38, 32, 0.9); }
+        body.dark-mode .logo-text { color: #81c784 !important; }
+
+        header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .hamburger-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: inherit; padding: 5px; border-radius: 6px; }
+        
+        /* สไตล์โลโก้รูปภาพบน Header */
+        .header-logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .header-logo-img { height: 38px; width: auto; object-fit: contain; }
+        .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
+
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .search { width: 240px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 30px; outline: none; font-size: 14px; }
+        .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
+
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; }
+        .sidebar.open { left: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .sidebar-close { background: none; border: none; font-size: 22px; cursor: pointer; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 10px; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: #263528; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
+        main { max-width: 1200px; margin: auto; padding: 35px 25px; }
+        .heading h1 { font-size: 32px; margin-bottom: 6px; }
+        .heading p { color: #718071; font-size: 15px; }
+        .categories { display: flex; gap: 10px; overflow-x: auto; margin: 25px 0; padding-bottom: 5px; }
+        .category { border: none; background: white; padding: 10px 18px; border-radius: 30px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+        .category.active { background: #2e7d32; color: white; }
+
+        .plant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; }
+        .plant-card { background: white; border-radius: 18px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.06); transition: 0.3s; position: relative; }
+        .plant-card:hover { transform: translateY(-5px); }
+        .plant-image { width: 100%; height: 200px; object-fit: cover; }
+        .plant-info { padding: 16px; }
+        .plant-name { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+        .scientific { font-size: 13px; color: #718071; font-style: italic; }
+        .type { display: inline-block; margin-top: 10px; padding: 4px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; }
+
+        .fav-btn { position: absolute; top: 12px; right: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
+        .fav-btn:hover { transform: scale(1.15); }
+
+        #mapSection { display: none; }
+        #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .map-popup-card { text-align: center; width: 160px; }
+        .map-popup-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; }
+        .map-popup-btn { display: inline-block; margin-top: 6px; background: #2e7d32; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; text-decoration: none; font-weight: bold; }
+        .empty-fav-msg { display: none; text-align: center; grid-column: 1 / -1; padding: 50px 20px; color: #718071; }
+
+        @media (max-width: 600px) {
+            .search { width: 120px; }
+            .heading h1 { font-size: 24px; }
+            .plant-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .plant-image { height: 140px; }
+            #map { height: 420px; }
+            .logo-text { font-size: 14px; }
+            .header-logo-img { height: 30px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>เมนูหลัก 🌿</h3>
+            <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" id="menuLibrary" class="active" onclick="switchView('library')">🌿 คลังธรรมชาติ</a></li>
+            <li><a href="#" id="menuFavorites" onclick="switchView('favorites')">❤️ รายการโปรดของฉัน</a></li>
+            <li><a href="#" id="menuMap" onclick="switchView('map')">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <button class="hamburger-btn" onclick="openSidebar()">☰</button>
+            <a href="./index.html" class="header-logo-link">
+                <img src="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy" alt="KU Nature Logo" class="header-logo-img">
+                <span class="logo-text">MY KU MY NATURE</span>
+            </a>
+        </div>
+        <div class="header-actions">
+            <input type="text" class="search" placeholder="🔍 ค้นหา..." id="searchInput">
+            <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()">🌙</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="librarySection">
+            <div class="heading">
+                <h1 id="pageTitle">Nature Library 📚</h1>
+                <p id="pageDesc">สำรวจธรรมชาติและสิ่งมีชีวิตที่น่าสนใจภายใน KU CSC</p>
+            </div>
+
+            <div class="categories" id="categoryBar">
+                <button class="category active" data-category="all">🌿 ทั้งหมด</button>
+                <button class="category" data-category="ไม้ยืนต้น">🌳 ไม้ยืนต้น</button>
+                <button class="category" data-category="ไม้ดอก">🌸 ไม้ดอก</button>
+                <button class="category" data-category="เห็ดรา">🍄 เห็ด</button>
+            </div>
+
+            <!-- Plant Cards Grid -->
+            <div class="plant-grid" id="plantGrid">
+                <div class="empty-fav-msg" id="emptyFavMsg">
+                    <h3>💔 ยังไม่มีรายการโปรด</h3>
+                    <p>กดปุ่มหัวใจ 🤍 บนการ์ดต้นไม้ที่คุณชอบเพื่อบันทึกไว้ได้เลย!</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="mapSection">
+            <div class="heading">
+                <h1>KU Nature Map 🗺️</h1>
+                <p>คลิกที่สติ๊กเกอร์ปักหมุดบนแผนที่เพื่อดูพืชตามจุดต่างๆ ในสถานที่จริง</p>
+            </div>
+            <div id="map"></div>
+        </section>
+    </main>
+
+    <script>
+        let allPlantsData = [];
+        let map = null;
+        let currentView = 'library';
+        let currentCategory = "all";
+
+        // โหลดข้อมูลจาก plants.json
+        async function loadPlantsData() {
+            try {
+                const response = await fetch('./plants.json');
+                allPlantsData = await response.json();
+                renderPlantCards(allPlantsData);
+                updateFavIcons();
+            } catch (error) {
+                console.error(" Error loading plants.json:", error);
+            }
+        }
+
+        // สร้างการ์ด HTML จากชุดข้อมูล JSON
+        function renderPlantCards(plants) {
+            const grid = document.getElementById("plantGrid");
+            const emptyMsg = document.getElementById("emptyFavMsg");
+            
+            grid.querySelectorAll('.plant-card').forEach(card => card.remove());
+
+            plants.forEach(plant => {
+                const card = document.createElement('div');
+                card.className = 'plant-card';
+                card.setAttribute('data-id', plant.id);
+                card.setAttribute('data-category', plant.category);
+                card.onclick = () => openPlant(plant.id);
+
+                card.innerHTML = `
+                    <button class="fav-btn" onclick="toggleFavorite(event, '${plant.id}')">🤍</button>
+                    <img class="plant-image" src="${plant.image}" alt="${plant.name}">
+                    <div class="plant-info">
+                        <div class="plant-name">${plant.name}</div>
+                        <div class="scientific">${plant.scientific}</div>
+                        <span class="type">${plant.type}</span>
+                    </div>
+                `;
+                grid.insertBefore(card, emptyMsg);
+            });
+        }
+
+        /* Favorites System */
+        function getFavorites() {
+            return JSON.parse(localStorage.getItem("ku_favorites") || "[]");
+        }
+
+        function toggleFavorite(event, id) {
+            event.stopPropagation();
+            let favs = getFavorites();
+            if (favs.includes(id)) {
+                favs = favs.filter(favId => favId !== id);
+            } else {
+                favs.push(id);
+            }
+            localStorage.setItem("ku_favorites", JSON.stringify(favs));
+            updateFavIcons();
+            if (currentView === 'favorites') filterPlants();
+        }
+
+        function updateFavIcons() {
+            const favs = getFavorites();
+            document.querySelectorAll(".plant-card").forEach(card => {
+                const id = card.getAttribute("data-id");
+                const btn = card.querySelector(".fav-btn");
+                if (btn) btn.innerHTML = favs.includes(id) ? "❤️" : "🤍";
+            });
+        }
+
+        /* Navigation Views */
+        function switchView(viewName) {
+            closeSidebar();
+            currentView = viewName;
+            const librarySec = document.getElementById("librarySection");
+            const mapSec = document.getElementById("mapSection");
+            const menuLib = document.getElementById("menuLibrary");
+            const menuFav = document.getElementById("menuFavorites");
+            const menuMap = document.getElementById("menuMap");
+            const categoryBar = document.getElementById("categoryBar");
+            const pageTitle = document.getElementById("pageTitle");
+            const pageDesc = document.getElementById("pageDesc");
+
+            [menuLib, menuFav, menuMap].forEach(m => m.classList.remove("active"));
+
+            if (viewName === 'map') {
+                librarySec.style.display = "none";
+                mapSec.style.display = "block";
+                menuMap.classList.add("active");
+                initMap();
+            } else {
+                librarySec.style.display = "block";
+                mapSec.style.display = "none";
+
+                if (viewName === 'favorites') {
+                    menuFav.classList.add("active");
+                    categoryBar.style.display = "none";
+                    pageTitle.innerHTML = "❤️ รายการโปรดของฉัน";
+                    pageDesc.innerHTML = "ต้นไม้และสิ่งมีชีวิตที่คุณบันทึกไว้ในคลังส่วนตัว";
+                } else {
+                    menuLib.classList.add("active");
+                    categoryBar.style.display = "flex";
+                    pageTitle.innerHTML = "Nature Library 📚";
+                    pageDesc.innerHTML = "สำรวจธรรมชาติและสิ่งมีชีวิตที่น่าสนใจภายใน KU CSC";
+                }
+                filterPlants();
+            }
+        }
+
+        /* Search & Filter */
+        function filterPlants() {
+            let searchInput = document.getElementById("searchInput").value.toLowerCase();
+            let cards = document.querySelectorAll(".plant-card");
+            let favs = getFavorites();
+            let visibleCount = 0;
+
+            cards.forEach(function(card) {
+                let id = card.getAttribute("data-id");
+                let text = card.innerText.toLowerCase();
+                let cardCategory = card.getAttribute("data-category");
+
+                let matchesSearch = text.includes(searchInput);
+                let matchesCategory = (currentCategory === "all") || (cardCategory === currentCategory);
+                let matchesFavorite = (currentView !== 'favorites') || favs.includes(id);
+
+                if (matchesSearch && matchesCategory && matchesFavorite) {
+                    card.style.display = "";
+                    visibleCount++;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            const emptyFavMsg = document.getElementById("emptyFavMsg");
+            emptyFavMsg.style.display = (currentView === 'favorites' && visibleCount === 0) ? "block" : "none";
+        }
+
+        /* Map View Initialization */
+        function initMap() {
+            if (map !== null) return;
+            map = L.map('map').setView([17.2882, 104.1123], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            allPlantsData.forEach(plant => {
+                const stickerIcon = L.divIcon({
+                    html: `<div style="font-size: 28px; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); cursor:pointer;">${plant.icon}</div>`,
+                    className: 'custom-sticker-marker',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+
+                const marker = L.marker([plant.lat, plant.lng], { icon: stickerIcon }).addTo(map);
+                const popupContent = `
+                    <div class="map-popup-card">
+                        <img src="${plant.image}" alt="${plant.name}">
+                        <b>${plant.name}</b><br>
+                        <a href="./tree.html?id=${plant.id}" class="map-popup-btn">ดูรายละเอียด ➔</a>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+            });
+        }
+
+        /* UI Helpers */
+        function openSidebar() { document.getElementById("sidebar").classList.add("open"); document.getElementById("overlay").classList.add("active"); }
+        function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("active"); }
+        function openPlant(id) { window.location.href = "./tree.html?id=" + id; }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const btn = document.getElementById("themeToggleBtn");
+            body.classList.toggle("dark-mode");
+            const isDark = body.classList.contains("dark-mode");
+            btn.innerHTML = isDark ? "☀️" : "🌙";
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+        }
+
+        (function checkSavedTheme() {
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark-mode");
+                const btn = document.getElementById("themeToggleBtn");
+                if (btn) btn.innerHTML = "☀️";
+            }
+        })();
+
+        document.getElementById("searchInput").addEventListener("keyup", filterPlants);
+        document.querySelectorAll(".category").forEach(button => {
+            button.addEventListener("click", function() {
+                document.querySelectorAll(".category").forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                currentCategory = button.getAttribute("data-category");
+                filterPlants();
+            });
+        });
+
+        loadPlantsData();
+    </script>
+</body>
+</html>
