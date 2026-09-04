@@ -27,6 +27,7 @@
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
+        body.dark-mode .btn-get-location, body.dark-mode .btn-ai-search { background: #2a352c; color: #81c784; border-color: #3e4e40; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -41,22 +42,15 @@
 
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .sidebar-close { background: none; border: none; font-size: 22px; cursor: pointer; }
         .sidebar-menu { list-style: none; }
         .sidebar-menu li { margin-bottom: 10px; }
-        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
         .menu-divider { height: 1px; background: #eee; margin: 15px 0; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
-
-        /* User Profile Box ใน Sidebar */
-        .user-profile-box { background: #f0f4f1; padding: 14px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
-        body.dark-mode .user-profile-box { background: #2a352c; }
-        .user-profile-name { font-weight: bold; color: #2e7d32; font-size: 15px; margin-bottom: 4px; }
-        body.dark-mode .user-profile-name { color: #81c784; }
-        .btn-logout { background: #d32f2f; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-top: 6px; font-weight: bold; }
 
         main { max-width: 1200px; margin: auto; padding: 35px 25px; }
         .heading h1 { font-size: 32px; margin-bottom: 6px; }
@@ -77,25 +71,30 @@
         .fav-btn, .delete-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
         .fav-btn { right: 12px; }
         .delete-btn { right: 54px; color: #d32f2f; display: none; }
+        .fav-btn:hover, .delete-btn:hover { transform: scale(1.15); }
 
         #mapSection { display: none; }
         #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .map-popup-card { text-align: center; width: 160px; }
+        .map-popup-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; }
+        .map-popup-btn { display: inline-block; margin-top: 6px; background: #2e7d32; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; text-decoration: none; font-weight: bold; }
         .empty-fav-msg { display: none; text-align: center; grid-column: 1 / -1; padding: 50px 20px; color: #718071; }
 
-        /* Modal Popups (Admin & Auth) */
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
-        .admin-modal-content { background: white; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+        .admin-modal-content { background: white; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #2e7d32; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
         .form-row { display: flex; gap: 12px; }
         .form-row .form-group { flex: 1; }
+        
+        .field-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .btn-get-location, .btn-ai-search { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-get-location:hover, .btn-ai-search:hover { background: #2e7d32; color: white; }
 
-        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 14px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-submit:hover { background: #236327; }
-        .auth-switch-text { text-align: center; font-size: 13px; margin-top: 15px; color: #666; }
-        .auth-switch-text span { color: #2e7d32; cursor: pointer; font-weight: bold; text-decoration: underline; }
 
         @media (max-width: 600px) {
             .search { width: 120px; }
@@ -103,6 +102,8 @@
             .plant-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .plant-image { height: 140px; }
             #map { height: 420px; }
+            .logo-text { font-size: 14px; }
+            .header-logo-img { height: 30px; }
             .form-row { flex-direction: column; gap: 0; }
         }
     </style>
@@ -117,19 +118,7 @@
             <h3>เมนูหลัก 🌿</h3>
             <button class="sidebar-close" onclick="closeSidebar()">✕</button>
         </div>
-
-        <!-- กล่องโพรไฟล์ผู้ใช้เมื่อล็อกอิน -->
-        <div class="user-profile-box" id="userProfileBox" style="display: none;">
-            <div class="user-profile-name" id="userProfileName">👤 User Name</div>
-            <button class="btn-logout" onclick="logoutUser()">ออกจากระบบ</button>
-        </div>
-
         <ul class="sidebar-menu">
-            <!-- เมนูเข้าสู่ระบบผู้ใช้ -->
-            <li id="userAuthMenuItem">
-                <a href="#" onclick="openAuthModal('login')">👤 เข้าสู่ระบบ / สมัครสมาชิก</a>
-            </li>
-
             <li><a href="#" id="menuLibrary" class="active" onclick="switchView('library')">🌿 คลังธรรมชาติ</a></li>
             <li><a href="#" id="menuFavorites" onclick="switchView('favorites')">❤️ รายการโปรดของฉัน</a></li>
             <li><a href="#" id="menuMap" onclick="switchView('map')">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
@@ -190,53 +179,6 @@
         </section>
     </main>
 
-    <!-- Modal เข้าสู่ระบบ / สมัครสมาชิก -->
-    <div class="admin-modal" id="authModal">
-        <div class="admin-modal-content">
-            <div class="modal-header">
-                <h2 id="authModalTitle">👤 เข้าสู่ระบบผู้ใช้</h2>
-                <button class="sidebar-close" onclick="closeAuthModal()">✕</button>
-            </div>
-
-            <!-- ฟอร์มเข้าสู่ระบบ -->
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>ชื่อผู้ใช้ (Username)</label>
-                    <input type="text" id="loginUsername" placeholder="กรอกชื่อผู้ใช้" required>
-                </div>
-                <div class="form-group">
-                    <label>รหัสผ่าน (Password)</label>
-                    <input type="password" id="loginPassword" placeholder="กรอกรหัสผ่าน" required>
-                </div>
-                <button type="submit" class="btn-submit">🔓 เข้าสู่ระบบ</button>
-                <div class="auth-switch-text">
-                    ยังไม่มีบัญชีใช่ไหม? <span onclick="switchAuthMode('register')">สมัครสมาชิกที่นี่</span>
-                </div>
-            </form>
-
-            <!-- ฟอร์มสมัครสมาชิก -->
-            <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
-                <div class="form-group">
-                    <label>ชื่อ - นามสกุล</label>
-                    <input type="text" id="regFullName" placeholder="เช่น สมชาย ใจดี" required>
-                </div>
-                <div class="form-group">
-                    <label>ตั้งชื่อผู้ใช้ (Username)</label>
-                    <input type="text" id="regUsername" placeholder="เช่น somchai_ku" required>
-                </div>
-                <div class="form-group">
-                    <label>ตั้งรหัสผ่าน (Password)</label>
-                    <input type="password" id="regPassword" placeholder="อย่างน้อย 4 ตัวอักษร" required>
-                </div>
-                <button type="submit" class="btn-submit">📝 สมัครสมาชิก</button>
-                <div class="auth-switch-text">
-                    มีบัญชีอยู่แล้ว? <span onclick="switchAuthMode('login')">เข้าสู่ระบบที่นี่</span>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal เพิ่มพืชใหม่ (Admin) -->
     <div class="admin-modal" id="addPlantModal">
         <div class="admin-modal-content">
             <div class="modal-header">
@@ -254,14 +196,20 @@
                         <input type="text" id="plantIcon" placeholder="เช่น 🌳, 🌸, 🍄" required>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label>ชื่อต้นไม้/พืช</label>
-                    <input type="text" id="plantName" placeholder="เช่น ดอกกุหลาบ, นนทรี" required>
+                    <div class="field-header-box">
+                        <label style="margin-bottom:0;">ชื่อต้นไม้/พืช</label>
+                        <button type="button" class="btn-ai-search" onclick="autoFillPlantDataWithAI()">🤖 ดึงข้อมูลด้วย AI</button>
+                    </div>
+                    <input type="text" id="plantName" placeholder="เช่น ดอกกุหลาบ, นนทรี, ราชพฤกษ์" style="margin-top:5px;" required>
                 </div>
+
                 <div class="form-group">
                     <label>ชื่อวิทยาศาสตร์</label>
                     <input type="text" id="plantScientific" placeholder="เช่น Peltophorum pterocarpum" required>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label>ประเภท/หมวดหมู่</label>
@@ -276,6 +224,7 @@
                         <input type="text" id="plantFamily" placeholder="เช่น Fabaceae" required>
                     </div>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label>อายุเฉลี่ย</label>
@@ -286,25 +235,37 @@
                         <input type="text" id="plantLocation" placeholder="เช่น หน้าอาคารสารสนเทศ" required>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label>พิกัดตำแหน่ง (Lat / Lng)</label>
-                    <div class="form-row">
-                        <div class="form-group"><input type="number" step="any" id="plantLat" placeholder="Lat (17.2882)" required></div>
-                        <div class="form-group"><input type="number" step="any" id="plantLng" placeholder="Lng (104.1123)" required></div>
+                    <div class="field-header-box">
+                        <label style="margin-bottom:0;">พิกัดตำแหน่ง (Lat / Lng)</label>
+                        <button type="button" class="btn-get-location" onclick="getCurrentLocation()">📍 พิกัดปัจจุบัน</button>
+                    </div>
+                    <div class="form-row" style="margin-top: 5px;">
+                        <div class="form-group">
+                            <input type="number" step="any" id="plantLat" placeholder="Lat (เช่น 17.2882)" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="number" step="any" id="plantLng" placeholder="Lng (เช่น 104.1123)" required>
+                        </div>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label>ลิงก์รูปภาพหน้าปก</label>
+                    <label>ลิงก์รูปภาพหน้าปก (วางลิงก์ Google Drive ได้เลย)</label>
                     <input type="text" id="plantImage" placeholder="https://drive.google.com/file/d/..." required>
                 </div>
+
                 <div class="form-group">
-                    <label>ลิงก์รูปภาพ Panorama / 180°</label>
+                    <label>ลิงก์รูปภาพ Panorama / 180° (วางลิงก์ Google Drive ได้เลย)</label>
                     <input type="text" id="plantPanorama" placeholder="https://drive.google.com/file/d/..." required>
                 </div>
+
                 <div class="form-group">
                     <label>คำอธิบายรายละเอียด</label>
-                    <textarea id="plantDescription" rows="3" placeholder="รายละเอียดลักษณะพืช..." required></textarea>
+                    <textarea id="plantDescription" rows="3" placeholder="รายละเอียดลักษณะพืช เกร็ดความรู้..." required></textarea>
                 </div>
+
                 <button type="submit" class="btn-submit">💾 บันทึกสร้างการ์ดพืชใหม่</button>
             </form>
         </div>
@@ -330,124 +291,22 @@
         let currentView = 'library';
         let currentCategory = "all";
         let isAdminLoggedIn = false;
-        let currentUser = null;
 
-        /* =========================
-           ระบบสมัครสมาชิก / ล็อกอิน
-        ========================= */
-        function openAuthModal(mode = 'login') {
-            closeSidebar();
-            switchAuthMode(mode);
-            document.getElementById("authModal").style.display = "flex";
-        }
-
-        function closeAuthModal() {
-            document.getElementById("authModal").style.display = "none";
-        }
-
-        function switchAuthMode(mode) {
-            const loginForm = document.getElementById("loginForm");
-            const regForm = document.getElementById("registerForm");
-            const title = document.getElementById("authModalTitle");
-
-            if (mode === 'login') {
-                loginForm.style.display = "block";
-                regForm.style.display = "none";
-                title.innerText = "👤 เข้าสู่ระบบผู้ใช้";
-            } else {
-                loginForm.style.display = "none";
-                regForm.style.display = "block";
-                title.innerText = "📝 สมัครสมาชิกใหม่";
-            }
-        }
-
-        function handleRegister(e) {
-            e.preventDefault();
-            const fullName = document.getElementById("regFullName").value.trim();
-            const username = document.getElementById("regUsername").value.trim().toLowerCase();
-            const password = document.getElementById("regPassword").value;
-
-            if (username.length < 3) {
-                alert("⚠️ ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 3 ตัวอักษร");
-                return;
-            }
-
-            // ตรวจสอบว่าชื่อผู้ใช้ซ้ำหรือไม่
-            db.ref('users/' + username).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    alert("❌ ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว กรุณาใช้ชื่ออื่น");
-                } else {
-                    // บันทึกข้อมูลผู้ใช้ใหม่ลง Firebase
-                    db.ref('users/' + username).set({
-                        fullName: fullName,
-                        username: username,
-                        password: password,
-                        createdAt: new Date().toISOString()
-                    }).then(() => {
-                        alert("🎉 สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
-                        switchAuthMode('login');
-                        document.getElementById("registerForm").reset();
-                    });
-                }
-            });
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById("loginUsername").value.trim().toLowerCase();
-            const password = document.getElementById("loginPassword").value;
-
-            db.ref('users/' + username).once('value', (snapshot) => {
-                const userData = snapshot.val();
-                if (userData && userData.password === password) {
-                    currentUser = userData;
-                    localStorage.setItem("ku_user", JSON.stringify(userData));
-                    updateUserUI();
-                    closeAuthModal();
-                    alert(`👋 ยินดีต้อนรับคุณ ${userData.fullName}`);
-                    document.getElementById("loginForm").reset();
-                } else {
-                    alert("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-                }
-            });
-        }
-
-        function logoutUser() {
-            currentUser = null;
-            localStorage.removeItem("ku_user");
-            updateUserUI();
-            alert("🚪 ออกจากระบบเรียบร้อยแล้ว");
-        }
-
-        function checkUserSession() {
-            const savedUser = localStorage.getItem("ku_user");
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-            }
-            updateUserUI();
-        }
-
-        function updateUserUI() {
-            const profileBox = document.getElementById("userProfileBox");
-            const profileName = document.getElementById("userProfileName");
-            const userMenuItem = document.getElementById("userAuthMenuItem");
-
-            if (currentUser) {
-                profileBox.style.display = "block";
-                profileName.innerText = `👤 ${currentUser.fullName}`;
-                userMenuItem.style.display = "none";
-            } else {
-                profileBox.style.display = "none";
-                userMenuItem.style.display = "block";
-            }
-        }
-
-        /* =========================
-           ระบบ Realtime Database Data
-        ========================= */
         function syncRealtimeData() {
-            db.ref('plants').on('value', (snapshot) => {
+            db.ref('plants').on('value', async (snapshot) => {
                 const data = snapshot.val();
+                
+                if (!data) {
+                    try {
+                        const res = await fetch('./plants.json');
+                        const basePlants = await res.json();
+                        const initialData = {};
+                        basePlants.forEach(p => initialData[p.id] = p);
+                        await db.ref('plants').set(initialData);
+                        return;
+                    } catch (e) { console.warn(e); }
+                }
+
                 allPlantsData = data ? Object.values(data) : [];
                 renderPlantCards(allPlantsData);
                 updateFavIcons();
@@ -457,6 +316,7 @@
         function renderPlantCards(plants) {
             const grid = document.getElementById("plantGrid");
             const emptyMsg = document.getElementById("emptyFavMsg");
+            
             grid.querySelectorAll('.plant-card').forEach(card => card.remove());
 
             plants.forEach(plant => {
@@ -480,15 +340,20 @@
             });
 
             updateAdminUI();
-            filterPlants();
         }
 
         function convertGoogleDriveUrl(url) {
             if (!url) return "";
             if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
+
             const regExp = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
             const match = url.match(regExp);
-            return match ? `https://lh3.googleusercontent.com/d/${match[1] || match[2]}` : url.trim();
+
+            if (match) {
+                const fileId = match[1] || match[2];
+                return `https://lh3.googleusercontent.com/d/${fileId}`;
+            }
+            return url.trim();
         }
 
         function handleAdminAuth() {
@@ -542,7 +407,8 @@
                     if (num > maxNum) maxNum = num;
                 }
             });
-            return `KU${String(maxNum + 1).padStart(3, '0')}`;
+            const nextNum = maxNum + 1;
+            return `KU${String(nextNum).padStart(3, '0')}`;
         }
 
         function openAddPlantModal() {
@@ -555,8 +421,96 @@
             document.getElementById("addPlantModal").style.display = "none";
         }
 
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                const btn = document.querySelector('.btn-get-location');
+                btn.innerText = "⏳ กำลังดึงพิกัด...";
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById("plantLat").value = position.coords.latitude.toFixed(6);
+                        document.getElementById("plantLng").value = position.coords.longitude.toFixed(6);
+                        btn.innerText = "✅ ได้พิกัดแล้ว";
+                        setTimeout(() => { btn.innerText = "📍 พิกัดปัจจุบัน"; }, 2000);
+                    },
+                    (error) => {
+                        alert("⚠️ ไม่สามารถดึงตำแหน่งได้ กรุณาเปิดสิทธิ์ GPS บนอุปกรณ์ของคุณ");
+                        btn.innerText = "📍 พิกัดปัจจุบัน";
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("⚠️ อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับระบบดึงพิกัดตำแหน่ง");
+            }
+        }
+
+        async function autoFillPlantDataWithAI() {
+            const rawName = document.getElementById("plantName").value.trim();
+            if (!rawName) {
+                alert("⚠️ กรุณากรอกชื่อต้นไม้/พืชก่อนกดดึงข้อมูลด้วย AI ครับ");
+                return;
+            }
+
+            const cleanName = rawName.replace(/^[^\w\s\u0E00-\u0E7F]+/, '').trim();
+            const btn = document.querySelector('.btn-ai-search');
+            btn.innerText = "🤖 AI กำลังค้นหา...";
+
+            try {
+                const knowledgeBase = {
+                    "กุหลาบ": { scientific: "Rosa", family: "Rosaceae (วงศ์กุหลาบ)", avgAge: "5 - 15 ปี", icon: "🌹", category: "ไม้ดอก", desc: "กุหลาบเป็นไม้ดอกพุ่มนิยมปลูกเพื่อความสวยงาม ตกแต่งสวน ประดับบ้าน และใช้ในเชิงพาณิชย์" },
+                    "นนทรี": { scientific: "Peltophorum pterocarpum", family: "Leguminosae-Caesalpinioideae", avgAge: "50 - 80 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้ยืนต้นขนาดกลางถึงใหญ่ ดอกสีเหลืองมีกลิ่นหอมอ่อนๆ เป็นต้นไม้ประจำ มก." },
+                    "ราชพฤกษ์": { scientific: "Cassia fistula", family: "Fabaceae", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก", desc: "ไม้ดอกช่อย้อยสีเหลืองอร่าม สวยงามมากในช่วงฤดูร้อน" },
+                    "คูน": { scientific: "Cassia fistula", family: "Fabaceae", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก", desc: "ไม้ดอกช่อย้อยสีเหลืองอร่าม สวยงามมากในช่วงฤดูร้อน" }
+                };
+
+                let matched = false;
+                for (let key in knowledgeBase) {
+                    if (cleanName.includes(key)) {
+                        const info = knowledgeBase[key];
+                        document.getElementById("plantScientific").value = info.scientific;
+                        document.getElementById("plantFamily").value = info.family;
+                        document.getElementById("plantAvgAge").value = info.avgAge;
+                        document.getElementById("plantIcon").value = info.icon;
+                        document.getElementById("plantCategory").value = info.category;
+                        document.getElementById("plantDescription").value = info.desc;
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (!matched) {
+                    const wikiUrl = `https://th.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanName)}`;
+                    const response = await fetch(wikiUrl);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.extract) {
+                            const text = data.extract;
+                            const latinMatch = text.match(/\(([A-Z][a-z]+(?:\s+[a-z]+)?)\)/);
+                            document.getElementById("plantScientific").value = latinMatch ? latinMatch[1] : cleanName;
+                            
+                            const familyMatch = text.match(/วงศ์\s+([A-Za-z\u0E00-\u0E7F]+)/);
+                            if (familyMatch) document.getElementById("plantFamily").value = familyMatch[1];
+
+                            document.getElementById("plantCategory").value = cleanName.includes("ดอก") ? "ไม้ดอก" : "ไม้ยืนต้น";
+                            document.getElementById("plantIcon").value = cleanName.includes("ดอก") ? "🌸" : "🌳";
+                            document.getElementById("plantAvgAge").value = "10 - 30 ปี";
+                            document.getElementById("plantDescription").value = text;
+                        }
+                    }
+                }
+
+                btn.innerText = "✅ แยกข้อมูลลงช่องเรียบร้อย";
+                setTimeout(() => { btn.innerText = "🤖 ดึงข้อมูลด้วย AI"; }, 2000);
+
+            } catch (err) {
+                btn.innerText = "🤖 ดึงข้อมูลด้วย AI";
+                alert("⚠️ กรอกรายละเอียดในช่องด้วยตนเองได้เลยครับ");
+            }
+        }
+
         function saveNewPlant(event) {
             event.preventDefault();
+
             const lat = parseFloat(document.getElementById("plantLat").value);
             const lng = parseFloat(document.getElementById("plantLng").value);
             const plantId = document.getElementById("plantId").value;
@@ -689,10 +643,10 @@
 
                 const marker = L.marker([plant.lat, plant.lng], { icon: stickerIcon }).addTo(map);
                 marker.bindPopup(`
-                    <div class="map-popup-card" style="text-align:center;">
-                        <img src="${plant.image}" alt="${plant.name}" style="width:100%; height:100px; object-fit:cover; border-radius:8px; margin-bottom:6px;">
+                    <div class="map-popup-card">
+                        <img src="${plant.image}" alt="${plant.name}">
                         <b>${plant.name}</b><br>
-                        <a href="./tree.html?id=${plant.id}" style="display:inline-block; margin-top:6px; background:#2e7d32; color:white; padding:4px 10px; border-radius:12px; font-size:12px; text-decoration:none;">ดูรายละเอียด ➔</a>
+                        <a href="./tree.html?id=${plant.id}" class="map-popup-btn">ดูรายละเอียด ➔</a>
                     </div>
                 `);
             });
@@ -727,7 +681,6 @@
             });
         });
 
-        checkUserSession();
         syncRealtimeData();
     </script>
 </body>
