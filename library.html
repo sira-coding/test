@@ -292,21 +292,10 @@
         let currentCategory = "all";
         let isAdminLoggedIn = false;
 
+        // ดึงและซิงค์ข้อมูลแบบเสถียร (ป้องกันลูปวนกระพริบ)
         function syncRealtimeData() {
-            db.ref('plants').on('value', async (snapshot) => {
+            db.ref('plants').on('value', (snapshot) => {
                 const data = snapshot.val();
-                
-                if (!data) {
-                    try {
-                        const res = await fetch('./plants.json');
-                        const basePlants = await res.json();
-                        const initialData = {};
-                        basePlants.forEach(p => initialData[p.id] = p);
-                        await db.ref('plants').set(initialData);
-                        return;
-                    } catch (e) { console.warn(e); }
-                }
-
                 allPlantsData = data ? Object.values(data) : [];
                 renderPlantCards(allPlantsData);
                 updateFavIcons();
@@ -340,6 +329,7 @@
             });
 
             updateAdminUI();
+            filterPlants();
         }
 
         function convertGoogleDriveUrl(url) {
