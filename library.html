@@ -23,12 +23,13 @@
         body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
         body.dark-mode .fav-btn { background: rgba(30, 38, 32, 0.9); }
         body.dark-mode .logo-text { color: #81c784 !important; }
+        body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
+        body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .hamburger-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: inherit; padding: 5px; border-radius: 6px; }
         
-        /* สไตล์โลโก้รูปภาพบน Header */
         .header-logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .header-logo-img { height: 38px; width: auto; object-fit: contain; }
         .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
@@ -37,14 +38,15 @@
         .search { width: 240px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 30px; outline: none; font-size: 14px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
 
-        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; }
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
         .sidebar-close { background: none; border: none; font-size: 22px; cursor: pointer; }
         .sidebar-menu { list-style: none; }
         .sidebar-menu li { margin-bottom: 10px; }
-        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: #263528; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
+        .menu-divider { height: 1px; background: #eee; margin: 15px 0; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
 
@@ -74,6 +76,18 @@
         .map-popup-btn { display: inline-block; margin-top: 6px; background: #2e7d32; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; text-decoration: none; font-weight: bold; }
         .empty-fav-msg { display: none; text-align: center; grid-column: 1 / -1; padding: 50px 20px; color: #718071; }
 
+        /* Modal Popup Form แอดมิน */
+        .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
+        .admin-modal-content { background: white; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #2e7d32; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 14px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-submit:hover { background: #236327; }
+
         @media (max-width: 600px) {
             .search { width: 120px; }
             .heading h1 { font-size: 24px; }
@@ -82,6 +96,7 @@
             #map { height: 420px; }
             .logo-text { font-size: 14px; }
             .header-logo-img { height: 30px; }
+            .form-row { flex-direction: column; gap: 0; }
         }
     </style>
 </head>
@@ -90,7 +105,7 @@
 
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-    <!-- Sidebar -->
+    <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3>เมนูหลัก 🌿</h3>
@@ -100,6 +115,19 @@
             <li><a href="#" id="menuLibrary" class="active" onclick="switchView('library')">🌿 คลังธรรมชาติ</a></li>
             <li><a href="#" id="menuFavorites" onclick="switchView('favorites')">❤️ รายการโปรดของฉัน</a></li>
             <li><a href="#" id="menuMap" onclick="switchView('map')">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
+            
+            <div class="menu-divider"></div>
+
+            <!-- เมนูฝั่งแอดมิน -->
+            <li id="adminLoginMenuItem">
+                <a href="#" onclick="handleAdminAuth()">🔑 เข้าสู่ระบบแอดมิน</a>
+            </li>
+            <li id="adminAddMenuItem" style="display: none;">
+                <a href="#" onclick="openAddPlantModal()" style="color: #2e7d32; background: #e8f5e9;">➕ เพิ่มการ์ดต้นไม้ใหม่</a>
+            </li>
+            <li id="adminExportMenuItem" style="display: none;">
+                <a href="#" onclick="exportPlantsJSON()" style="font-size: 13px; color: #555;">📥 ดาวน์โหลด plants.json ใหม่</a>
+            </li>
         </ul>
     </div>
 
@@ -132,7 +160,6 @@
                 <button class="category" data-category="เห็ดรา">🍄 เห็ด</button>
             </div>
 
-            <!-- Plant Cards Grid -->
             <div class="plant-grid" id="plantGrid">
                 <div class="empty-fav-msg" id="emptyFavMsg">
                     <h3>💔 ยังไม่มีรายการโปรด</h3>
@@ -150,17 +177,109 @@
         </section>
     </main>
 
+    <!-- Modal ฟอร์มสร้างต้นไม้ใหม่ (Admin Only) -->
+    <div class="admin-modal" id="addPlantModal">
+        <div class="admin-modal-content">
+            <div class="modal-header">
+                <h2>➕ เพิ่มพืช/ต้นไม้ใหม่</h2>
+                <button class="sidebar-close" onclick="closeAddPlantModal()">✕</button>
+            </div>
+            <form id="addPlantForm" onsubmit="saveNewPlant(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>รหัสพืช (Auto ID)</label>
+                        <input type="text" id="plantId" readonly style="background: #eee; font-weight: bold;">
+                    </div>
+                    <div class="form-group">
+                        <label>ไอคอนสัญลักษณ์</label>
+                        <input type="text" id="plantIcon" placeholder="เช่น 🌳, 🌸, 🍄" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ชื่อต้นไม้/พืช</label>
+                    <input type="text" id="plantName" placeholder="เช่น 🌳 ต้นนนทรี" required>
+                </div>
+
+                <div class="form-group">
+                    <label>ชื่อวิทยาศาสตร์</label>
+                    <input type="text" id="plantScientific" placeholder="เช่น Peltophorum pterocarpum" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ประเภท/หมวดหมู่</label>
+                        <select id="plantCategory" required>
+                            <option value="ไม้ยืนต้น">ไม้ยืนต้น</option>
+                            <option value="ไม้ดอก">ไม้ดอก</option>
+                            <option value="เห็ดรา">เห็ดรา</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>วงศ์ (Family)</label>
+                        <input type="text" id="plantFamily" placeholder="เช่น Fabaceae" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>อายุเฉลี่ย</label>
+                        <input type="text" id="plantAvgAge" placeholder="เช่น 30 - 50 ปี" required>
+                    </div>
+                    <div class="form-group">
+                        <label>สถานที่พบ</label>
+                        <input type="text" id="plantLocation" placeholder="เช่น หน้าอาคารสารสนเทศ" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>พิกัด Lat (ละติจูด)</label>
+                        <input type="number" step="any" id="plantLat" placeholder="17.2882" required>
+                    </div>
+                    <div class="form-group">
+                        <label>พิกัด Lng (ลองจิจูด)</label>
+                        <input type="number" step="any" id="plantLng" placeholder="104.1123" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ลิงก์รูปภาพหน้าปก (Direct Image Link)</label>
+                    <input type="url" id="plantImage" placeholder="https://lh3.googleusercontent.com/d/..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>ลิงก์รูปภาพ Panorama / 360°</label>
+                    <input type="url" id="plantPanorama" placeholder="https://lh3.googleusercontent.com/d/..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>คำอธิบายรายละเอียด</label>
+                    <textarea id="plantDescription" rows="3" placeholder="รายละเอียดลักษณะพืช เกร็ดความรู้..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">💾 บันทึกสร้างการ์ดพืชใหม่</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         let allPlantsData = [];
         let map = null;
         let currentView = 'library';
         let currentCategory = "all";
+        let isAdminLoggedIn = false;
 
-        // โหลดข้อมูลจาก plants.json
+        // โหลดข้อมูลจาก plants.json และ localStorage
         async function loadPlantsData() {
             try {
                 const response = await fetch('./plants.json');
-                allPlantsData = await response.json();
+                const baseData = await response.json();
+                
+                // รวมข้อมูลจาก LocalStorage ถ้ามีการสร้างการ์ดใหม่ผ่านหน้าเว็บ
+                const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
+                allPlantsData = [...baseData, ...localData];
+
                 renderPlantCards(allPlantsData);
                 updateFavIcons();
             } catch (error) {
@@ -168,7 +287,7 @@
             }
         }
 
-        // สร้างการ์ด HTML จากชุดข้อมูล JSON
+        // สร้างการ์ด HTML
         function renderPlantCards(plants) {
             const grid = document.getElementById("plantGrid");
             const emptyMsg = document.getElementById("emptyFavMsg");
@@ -179,7 +298,7 @@
                 const card = document.createElement('div');
                 card.className = 'plant-card';
                 card.setAttribute('data-id', plant.id);
-                card.setAttribute('data-category', plant.category);
+                card.setAttribute('data-category', plant.category || plant.type);
                 card.onclick = () => openPlant(plant.id);
 
                 card.innerHTML = `
@@ -193,6 +312,119 @@
                 `;
                 grid.insertBefore(card, emptyMsg);
             });
+        }
+
+        /* =========================
+           ระบบแอดมิน & สร้างการ์ดใหม่
+        ========================= */
+
+        function handleAdminAuth() {
+            if (!isAdminLoggedIn) {
+                const password = prompt("🔑 กรุณากรอกรหัสผ่านแอดมิน (รหัสทดสอบ: admin123):");
+                if (password === "admin123") {
+                    isAdminLoggedIn = true;
+                    alert("เข้าสู่ระบบแอดมินสำเร็จ!");
+                    updateAdminUI();
+                } else if (password !== null) {
+                    alert("❌ รหัสผ่านไม่ถูกต้อง");
+                }
+            } else {
+                if (confirm("ต้องการออกจากระบบแอดมินหรือไม่?")) {
+                    isAdminLoggedIn = false;
+                    updateAdminUI();
+                }
+            }
+        }
+
+        function updateAdminUI() {
+            const loginItem = document.getElementById("adminLoginMenuItem");
+            const addItem = document.getElementById("adminAddMenuItem");
+            const exportItem = document.getElementById("adminExportMenuItem");
+
+            if (isAdminLoggedIn) {
+                loginItem.querySelector('a').innerText = "🚪 ออกจากระบบแอดมิน";
+                addItem.style.display = "block";
+                exportItem.style.display = "block";
+            } else {
+                loginItem.querySelector('a').innerText = "🔑 เข้าสู่ระบบแอดมิน";
+                addItem.style.display = "none";
+                exportItem.style.display = "none";
+            }
+        }
+
+        function generateNextPlantId() {
+            let maxNum = 0;
+            allPlantsData.forEach(plant => {
+                const match = plant.id.match(/KU(\d+)/i);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    if (num > maxNum) maxNum = num;
+                }
+            });
+            const nextNum = maxNum + 1;
+            // จัดการใส่ 0 ข้างหน้าให้อยู่ในฟอร์แมต KU001, KU010, KU100
+            const paddedNum = String(nextNum).padStart(3, '0');
+            return `KU${paddedNum}`;
+        }
+
+        function openAddPlantModal() {
+            closeSidebar();
+            document.getElementById("plantId").value = generateNextPlantId();
+            document.getElementById("addPlantModal").style.display = "flex";
+        }
+
+        function closeAddPlantModal() {
+            document.getElementById("addPlantModal").style.display = "none";
+        }
+
+        function saveNewPlant(event) {
+            event.preventDefault();
+
+            const lat = parseFloat(document.getElementById("plantLat").value);
+            const lng = parseFloat(document.getElementById("plantLng").value);
+
+            const newPlant = {
+                id: document.getElementById("plantId").value,
+                name: document.getElementById("plantName").value,
+                scientific: document.getElementById("plantScientific").value,
+                type: document.getElementById("plantCategory").value,
+                category: document.getElementById("plantCategory").value,
+                family: document.getElementById("plantFamily").value,
+                avgAge: document.getElementById("plantAvgAge").value,
+                location: document.getElementById("plantLocation").value,
+                coordinates: `${lat}° N, ${lng}° E`,
+                lat: lat,
+                lng: lng,
+                icon: document.getElementById("plantIcon").value,
+                image: document.getElementById("plantImage").value,
+                panoramaImage: document.getElementById("plantPanorama").value,
+                description: document.getElementById("plantDescription").value
+            };
+
+            // บันทึกเข้า Array และ LocalStorage
+            allPlantsData.push(newPlant);
+            
+            const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
+            localData.push(newPlant);
+            localStorage.setItem("custom_plants_data", JSON.stringify(localData));
+
+            renderPlantCards(allPlantsData);
+            updateFavIcons();
+            closeAddPlantModal();
+            document.getElementById("addPlantForm").reset();
+
+            alert(`สร้างการ์ดพืช ${newPlant.id} (${newPlant.name}) สำเร็จแล้ว!`);
+        }
+
+        // ปุ่มดาวน์โหลดไฟล์ plants.json ฉบับอัปเดตไปใช้งานต่อ
+        function exportPlantsJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allPlantsData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "plants.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         /* Favorites System */
