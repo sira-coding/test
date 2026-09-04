@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Firebase SDK (v9 Moduler Compat) -->
+    <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -272,15 +272,15 @@
     </div>
 
     <script>
-        // 🛠️ วาง firebaseConfig ของคุณที่นี่
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDOnvU6c3-EouUDoxzxDSTTEI-siU3d0fo",
+            authDomain: "mykumynature.firebaseapp.com",
+            databaseURL: "https://mykumynature-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "mykumynature",
+            storageBucket: "mykumynature.firebasestorage.app",
+            messagingSenderId: "871727030249",
+            appId: "1:871727030249:web:c0ffea6461c0503765f578",
+            measurementId: "G-BE88SS6HLJ"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -292,10 +292,21 @@
         let currentCategory = "all";
         let isAdminLoggedIn = false;
 
-        // ดึงข้อมูล Realtime Sync ทุกคนเห็นตรงกันทันที
         function syncRealtimeData() {
-            db.ref('plants').on('value', (snapshot) => {
+            db.ref('plants').on('value', async (snapshot) => {
                 const data = snapshot.val();
+                
+                if (!data) {
+                    try {
+                        const res = await fetch('./plants.json');
+                        const basePlants = await res.json();
+                        const initialData = {};
+                        basePlants.forEach(p => initialData[p.id] = p);
+                        await db.ref('plants').set(initialData);
+                        return;
+                    } catch (e) { console.warn(e); }
+                }
+
                 allPlantsData = data ? Object.values(data) : [];
                 renderPlantCards(allPlantsData);
                 updateFavIcons();
@@ -378,10 +389,8 @@
             }
         }
 
-        // ลบข้อมูลบน Firebase (ทุกคนอัปเดตตามทันที)
         function deletePlantCard(event, plantId, plantName) {
             event.stopPropagation();
-            
             if (confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการ์ด "${plantId} - ${plantName}"?`)) {
                 db.ref('plants/' + plantId).remove()
                     .then(() => alert(`🗑️ ลบการ์ด ${plantId} สำเร็จแล้ว`))
@@ -399,8 +408,7 @@
                 }
             });
             const nextNum = maxNum + 1;
-            const paddedNum = String(nextNum).padStart(3, '0');
-            return `KU${paddedNum}`;
+            return `KU${String(nextNum).padStart(3, '0')}`;
         }
 
         function openAddPlantModal() {
@@ -500,7 +508,6 @@
             }
         }
 
-        // บันทึกข้อมูลขึ้น Firebase (ทุกคนเห็นการ์ดใหม่ทันที)
         function saveNewPlant(event) {
             event.preventDefault();
 
