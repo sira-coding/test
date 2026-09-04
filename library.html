@@ -21,7 +21,7 @@
         body.dark-mode .plant-card { background: #1e2620; }
         body.dark-mode .sidebar a { color: #e0e6e1; }
         body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
-        body.dark-mode .fav-btn { background: rgba(30, 38, 32, 0.9); }
+        body.dark-mode .fav-btn, body.dark-mode .delete-btn { background: rgba(30, 38, 32, 0.9); }
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
@@ -67,8 +67,11 @@
         .scientific { font-size: 13px; color: #718071; font-style: italic; }
         .type { display: inline-block; margin-top: 10px; padding: 4px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; }
 
-        .fav-btn { position: absolute; top: 12px; right: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
-        .fav-btn:hover { transform: scale(1.15); }
+        /* ปุ่มลบและปุ่มโปรดบนการ์ด */
+        .fav-btn, .delete-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
+        .fav-btn { right: 12px; }
+        .delete-btn { right: 54px; color: #d32f2f; display: none; }
+        .fav-btn:hover, .delete-btn:hover { transform: scale(1.15); }
 
         #mapSection { display: none; }
         #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
@@ -285,16 +288,23 @@
 
         async function loadPlantsData() {
             try {
-                const response = await fetch('./plants.json');
-                const baseData = await response.json();
+                let baseData = [];
+                try {
+                    const response = await fetch('./plants.json');
+                    baseData = await response.json();
+                } catch(e) { console.warn("base plants.json missing or CORS"); }
                 
                 const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
-                allPlantsData = [...baseData, ...localData];
+                const deletedIds = JSON.parse(localStorage.getItem("deleted_plant_ids") || "[]");
+
+                // กรองรายการที่ถูกลบออกไป
+                allPlantsData = [...baseData, ...localData].filter(p => !deletedIds.includes(p.id));
 
                 renderPlantCards(allPlantsData);
                 updateFavIcons();
+                updateAdminUI();
             } catch (error) {
-                console.error(" Error loading plants.json:", error);
+                console.error(" Error loading plants data:", error);
             }
         }
 
@@ -312,6 +322,7 @@
                 card.onclick = () => openPlant(plant.id);
 
                 card.innerHTML = `
+                    <button class="delete-btn" title="ลบการ์ดนี้" onclick="deletePlantCard(event, '${plant.id}', '${plant.name}')">🗑️</button>
                     <button class="fav-btn" onclick="toggleFavorite(event, '${plant.id}')">🤍</button>
                     <img class="plant-image" src="${plant.image}" alt="${plant.name}">
                     <div class="plant-info">
@@ -322,14 +333,14 @@
                 `;
                 grid.insertBefore(card, emptyMsg);
             });
+
+            updateAdminUI();
         }
 
-        /* Helper แปลงลิงก์ Google Drive รูปแบบใดก็ตามเป็น Direct Link (lh3.googleusercontent.com) */
         function convertGoogleDriveUrl(url) {
             if (!url) return "";
             if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
 
-            // สกัดรหัส File ID จาก URL หลายรูปแบบ
             const regExp = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
             const match = url.match(regExp);
 
@@ -341,7 +352,7 @@
         }
 
         /* =========================
-           ระบบแอดมิน, GPS & AI Smart Parsing
+           ระบบแอดมิน, GPS, AI & Delete
         ========================= */
 
         function handleAdminAuth() {
@@ -371,10 +382,38 @@
                 loginItem.querySelector('a').innerText = "🚪 ออกจากระบบแอดมิน";
                 addItem.style.display = "block";
                 exportItem.style.display = "block";
+                document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "flex");
             } else {
                 loginItem.querySelector('a').innerText = "🔑 เข้าสู่ระบบแอดมิน";
                 addItem.style.display = "none";
                 exportItem.style.display = "none";
+                document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "none");
+            }
+        }
+
+        // ฟังก์ชันลบการ์ดพืชพร้อมยืนยัน
+        function deletePlantCard(event, plantId, plantName) {
+            event.stopPropagation(); // ไม่ให้กดเปิดหน้า tree.html
+            
+            const confirmDelete = confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการ์ด "${plantId} - ${plantName}"?`);
+            if (confirmDelete) {
+                // ลบออกจาก Memory
+                allPlantsData = allPlantsData.filter(p => p.id !== plantId);
+
+                // ลบออกจาก LocalStorage (ถ้าเป็นการ์ดใหม่ที่สร้างผ่านเว็บ)
+                let localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
+                localData = localData.filter(p => p.id !== plantId);
+                localStorage.setItem("custom_plants_data", JSON.stringify(localData));
+
+                // จำ ID ที่ถูกลบไว้ (กรณียึดการ์ดเดิมจาก plants.json)
+                let deletedIds = JSON.parse(localStorage.getItem("deleted_plant_ids") || "[]");
+                if (!deletedIds.includes(plantId)) {
+                    deletedIds.push(plantId);
+                    localStorage.setItem("deleted_plant_ids", JSON.stringify(deletedIds));
+                }
+
+                renderPlantCards(allPlantsData);
+                alert(`🗑️ ลบการ์ด ${plantId} เรียบร้อยแล้ว`);
             }
         }
 
@@ -425,7 +464,6 @@
             }
         }
 
-        // AI แยกข้อมูลแล้วหยอดลงช่องแยกให้ถูกต้อง
         async function autoFillPlantDataWithAI() {
             const rawName = document.getElementById("plantName").value.trim();
             if (!rawName) {
@@ -524,7 +562,6 @@
             const lat = parseFloat(document.getElementById("plantLat").value);
             const lng = parseFloat(document.getElementById("plantLng").value);
 
-            // ดึงค่า URL จากช่องกรอกแล้วแปลงเป็น Direct Link
             const rawCoverImage = document.getElementById("plantImage").value;
             const rawPanoramaImage = document.getElementById("plantPanorama").value;
 
