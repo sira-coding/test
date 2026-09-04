@@ -257,13 +257,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label>ลิงก์รูปภาพหน้าปก (Direct Image Link)</label>
-                    <input type="url" id="plantImage" placeholder="https://lh3.googleusercontent.com/d/..." required>
+                    <label>ลิงก์รูปภาพหน้าปก (วางลิงก์ Google Drive ได้เลย)</label>
+                    <input type="text" id="plantImage" placeholder="https://drive.google.com/file/d/..." required>
                 </div>
 
                 <div class="form-group">
-                    <label>ลิงก์รูปภาพ Panorama / 360°</label>
-                    <input type="url" id="plantPanorama" placeholder="https://lh3.googleusercontent.com/d/..." required>
+                    <label>ลิงก์รูปภาพ Panorama / 180° (วางลิงก์ Google Drive ได้เลย)</label>
+                    <input type="text" id="plantPanorama" placeholder="https://drive.google.com/file/d/..." required>
                 </div>
 
                 <div class="form-group">
@@ -322,6 +322,22 @@
                 `;
                 grid.insertBefore(card, emptyMsg);
             });
+        }
+
+        /* Helper แปลงลิงก์ Google Drive รูปแบบใดก็ตามเป็น Direct Link (lh3.googleusercontent.com) */
+        function convertGoogleDriveUrl(url) {
+            if (!url) return "";
+            if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
+
+            // สกัดรหัส File ID จาก URL หลายรูปแบบ
+            const regExp = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
+            const match = url.match(regExp);
+
+            if (match) {
+                const fileId = match[1] || match[2];
+                return `https://lh3.googleusercontent.com/d/${fileId}`;
+            }
+            return url.trim();
         }
 
         /* =========================
@@ -422,7 +438,6 @@
             btn.innerText = "🤖 AI กำลังค้นหา...";
 
             try {
-                // 1. Knowledge Base ในตัวสำหรับพืชพบบ่อย
                 const knowledgeBase = {
                     "กุหลาบ": { scientific: "Rosa", family: "Rosaceae (วงศ์กุหลาบ)", avgAge: "5 - 15 ปี", icon: "🌹", category: "ไม้ดอก", desc: "กุหลาบเป็นไม้ดอกพุ่มนิยมปลูกเพื่อความสวยงาม ตกแต่งสวน ประดับบ้าน และใช้ในเชิงพาณิชย์" },
                     "นนทรี": { scientific: "Peltophorum pterocarpum", family: "Leguminosae-Caesalpinioideae", avgAge: "50 - 80 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้ยืนต้นขนาดกลางถึงใหญ่ ดอกสีเหลืองมีกลิ่นหอมอ่อนๆ เป็นต้นไม้ประจำ มก." },
@@ -452,7 +467,6 @@
                     }
                 }
 
-                // 2. ถ้าไม่เจอในคีย์เวิร์ด ดึง Wikipedia API แล้วสกัดคำแยกช่อง
                 if (!matched) {
                     const wikiUrl = `https://th.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanName)}`;
                     const response = await fetch(wikiUrl);
@@ -462,7 +476,6 @@
                         if (data.extract) {
                             const text = data.extract;
 
-                            // หาชื่อวิทยาศาสตร์
                             const latinMatch = text.match(/\(([A-Z][a-z]+(?:\s+[a-z]+)?)\)/);
                             if (latinMatch) {
                                 document.getElementById("plantScientific").value = latinMatch[1];
@@ -470,13 +483,11 @@
                                 document.getElementById("plantScientific").value = cleanName;
                             }
 
-                            // หาชื่อวงศ์
                             const familyMatch = text.match(/วงศ์\s+([A-Za-z\u0E00-\u0E7F]+)/);
                             if (familyMatch) {
                                 document.getElementById("plantFamily").value = familyMatch[1];
                             }
 
-                            // กำหนดประเภท
                             if (cleanName.includes("ดอก") || cleanName.includes("กุหลาบ") || text.includes("ไม้ดอก")) {
                                 document.getElementById("plantCategory").value = "ไม้ดอก";
                                 document.getElementById("plantIcon").value = "🌸";
@@ -513,6 +524,10 @@
             const lat = parseFloat(document.getElementById("plantLat").value);
             const lng = parseFloat(document.getElementById("plantLng").value);
 
+            // ดึงค่า URL จากช่องกรอกแล้วแปลงเป็น Direct Link
+            const rawCoverImage = document.getElementById("plantImage").value;
+            const rawPanoramaImage = document.getElementById("plantPanorama").value;
+
             const newPlant = {
                 id: document.getElementById("plantId").value,
                 name: document.getElementById("plantName").value,
@@ -526,8 +541,8 @@
                 lat: lat,
                 lng: lng,
                 icon: document.getElementById("plantIcon").value,
-                image: document.getElementById("plantImage").value,
-                panoramaImage: document.getElementById("plantPanorama").value,
+                image: convertGoogleDriveUrl(rawCoverImage),
+                panoramaImage: convertGoogleDriveUrl(rawPanoramaImage),
                 description: document.getElementById("plantDescription").value
             };
 
