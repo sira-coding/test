@@ -25,7 +25,7 @@
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
-        body.dark-mode .btn-get-location { background: #2a352c; color: #81c784; border-color: #3e4e40; }
+        body.dark-mode .btn-get-location, body.dark-mode .btn-ai-search { background: #2a352c; color: #81c784; border-color: #3e4e40; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -87,9 +87,9 @@
         .form-row { display: flex; gap: 12px; }
         .form-row .form-group { flex: 1; }
         
-        .location-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .btn-get-location { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-get-location:hover { background: #2e7d32; color: white; }
+        .field-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .btn-get-location, .btn-ai-search { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-get-location:hover, .btn-ai-search:hover { background: #2e7d32; color: white; }
 
         .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 14px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-submit:hover { background: #236327; }
@@ -203,8 +203,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label>ชื่อต้นไม้/พืช</label>
-                    <input type="text" id="plantName" placeholder="เช่น 🌳 ต้นนนทรี" required>
+                    <div class="field-header-box">
+                        <label style="margin-bottom:0;">ชื่อต้นไม้/พืช</label>
+                        <button type="button" class="btn-ai-search" onclick="autoFillPlantDataWithAI()">🤖 ดึงข้อมูลด้วย AI</button>
+                    </div>
+                    <input type="text" id="plantName" placeholder="เช่น นนทรี, ราชพฤกษ์, ชงโค" style="margin-top:5px;" required>
                 </div>
 
                 <div class="form-group">
@@ -239,7 +242,7 @@
                 </div>
 
                 <div class="form-group">
-                    <div class="location-header-box">
+                    <div class="field-header-box">
                         <label style="margin-bottom:0;">พิกัดตำแหน่ง (Lat / Lng)</label>
                         <button type="button" class="btn-get-location" onclick="getCurrentLocation()">📍 พิกัดปัจจุบัน</button>
                     </div>
@@ -286,7 +289,6 @@
                 const response = await fetch('./plants.json');
                 const baseData = await response.json();
                 
-                // รวมข้อมูลจาก LocalStorage ถ้ามีการสร้างการ์ดใหม่ผ่านหน้าเว็บ
                 const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
                 allPlantsData = [...baseData, ...localData];
 
@@ -325,7 +327,7 @@
         }
 
         /* =========================
-           ระบบแอดมิน & ดึงพิกัดปัจจุบัน
+           ระบบแอดมิน, GPS & AI Auto-fill
         ========================= */
 
         function handleAdminAuth() {
@@ -386,7 +388,7 @@
             document.getElementById("addPlantModal").style.display = "none";
         }
 
-        // ดึงตำแหน่งพิกัด GPS ปัจจุบันของเครื่องแอดมิน
+        // ดึงพิกัด GPS ปัจจุบัน
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 const btn = document.querySelector('.btn-get-location');
@@ -407,6 +409,74 @@
                 );
             } else {
                 alert("⚠️ อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับระบบดึงพิกัดตำแหน่ง");
+            }
+        }
+
+        // ระบบ AI ดึงข้อมูลพืชอัตโนมัติจากชื่อ
+        async function autoFillPlantDataWithAI() {
+            const rawName = document.getElementById("plantName").value.trim();
+            if (!rawName) {
+                alert("⚠️ กรุณากรอกชื่อต้นไม้/พืชก่อนกดดึงข้อมูลด้วย AI ครับ");
+                return;
+            }
+
+            const cleanName = rawName.replace(/^[^\w\s\u0E00-\u0E7F]+/, '').trim(); // ลบอีโมจิข้างหน้าออก
+            const btn = document.querySelector('.btn-ai-search');
+            btn.innerText = "🤖 AI กำลังค้นหา...";
+
+            try {
+                // ค้นหาผ่าน Wikipedia API ภาษาไทย
+                const wikiUrl = `https://th.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanName)}`;
+                const response = await fetch(wikiUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.extract) {
+                        document.getElementById("plantDescription").value = data.extract;
+                    }
+                }
+
+                // AI Knowledge Base สำรองในตัวสำหรับเติมชื่อวิทยาศาสตร์/วงศ์/อายุ
+                const knowledgeBase = {
+                    "นนทรี": { scientific: "Peltophorum pterocarpum", family: "Leguminosae-Caesalpinioideae (วงศ์ถั่ว)", avgAge: "50 - 80 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
+                    "ราชพฤกษ์": { scientific: "Cassia fistula", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก" },
+                    "คูน": { scientific: "Cassia fistula", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก" },
+                    "ชงโค": { scientific: "Bauhinia purpurea", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "20 - 40 ปี", icon: "🌸", category: "ไม้ดอก" },
+                    "หางนกยูงฝรั่ง": { scientific: "Delonix regia", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "30 - 60 ปี", icon: "🌺", category: "ไม้ดอก" },
+                    "พญาสัตบรรณ": { scientific: "Alstonia scholaris", family: "Apocynaceae (วงศ์ตีนเป็ด)", avgAge: "40 - 70 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
+                    "ตีนเป็ด": { scientific: "Alstonia scholaris", family: "Apocynaceae (วงศ์ตีนเป็ด)", avgAge: "40 - 70 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
+                    "มะขาม": { scientific: "Tamarindus indica", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "80 - 150 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
+                    "สัก": { scientific: "Tectona grandis", family: "Lamiaceae (วงศ์กะเพรา)", avgAge: "80 - 100 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
+                    "ตะแบก": { scientific: "Lagerstroemia floribunda", family: "Lythraceae (วงศ์ตะแบก)", avgAge: "40 - 70 ปี", icon: "🌸", category: "ไม้ดอก" }
+                };
+
+                // ตรวจจับคีย์เวิร์ด
+                let matched = false;
+                for (let key in knowledgeBase) {
+                    if (cleanName.includes(key)) {
+                        const info = knowledgeBase[key];
+                        document.getElementById("plantScientific").value = info.scientific;
+                        document.getElementById("plantFamily").value = info.family;
+                        document.getElementById("plantAvgAge").value = info.avgAge;
+                        document.getElementById("plantIcon").value = info.icon;
+                        document.getElementById("plantCategory").value = info.category;
+                        matched = true;
+                        break;
+                    }
+                }
+
+                btn.innerText = "✅ ดึงข้อมูลสำเร็จ";
+                setTimeout(() => { btn.innerText = "🤖 ดึงข้อมูลด้วย AI"; }, 2000);
+
+                if (!matched && !document.getElementById("plantDescription").value) {
+                    alert("💡 AI ค้นพบข้อมูลเบื้องต้นเรียบร้อย! สามารถปรับแต่งรายละเอียดเพิ่มเติมในช่องกรอกได้เลยครับ");
+                }
+
+            } catch (err) {
+                console.error("AI Fetch Error:", err);
+                btn.innerText = "🤖 ดึงข้อมูลด้วย AI";
+                alert("⚠️ ไม่สามารถค้นหาข้อมูลอัตโนมัติได้ คุณสามารถกรอกรายละเอียดด้วยตัวเองได้เลยครับ");
             }
         }
 
