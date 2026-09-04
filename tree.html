@@ -34,7 +34,6 @@
         .back-btn { background: none; border: none; font-size: 15px; color: #2e7d32; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
         .back-btn:hover { text-decoration: underline; }
 
-        /* สไตล์โลโก้รูปภาพบน Top Bar */
         .header-logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; border-left: 1px solid #ddd; padding-left: 18px; }
         body.dark-mode .header-logo-link { border-left-color: #3e4e40; }
         .header-logo-img { height: 34px; width: auto; object-fit: contain; }
@@ -117,7 +116,6 @@
             return urlParams.get('id');
         }
 
-        // เปิด Pop-up 360° พร้อมกำหนดขอบเขตภาพแบบ Partial Panorama
         function open360Viewer(panoUrl) {
             document.getElementById("modal360").style.display = "flex";
             if (pannellumViewer) pannellumViewer.destroy();
@@ -127,20 +125,16 @@
                 "panorama": panoUrl,
                 "autoLoad": true,
                 "compass": false,
-                
-                /* ปรับแต่งขอบเขตสำหรับภาพแบบ Partial Panorama (ไม่บิดเบี้ยว) */
-                "haov": 200,          // องศาแนวนอน
-                "vaov": 70,           // องศาแนวตั้ง
-                "vOffset": 0,         // จุดศูนย์กลางแนวตั้ง
-                
-                "hfov": 90,           // ระยะซูมเริ่มต้น
-                "minHfov": 50,        // ซูมเข้าได้มากสุด
-                "maxHfov": 110,       // ซูมออกได้มากสุด
-                
-                "minPitch": -25,      // ล็อกไม่ให้ก้มลงไปเห็นส่วนรูปตัด
-                "maxPitch": 25,       // ล็อกไม่ให้เงยขึ้นไปเห็นส่วนรูปตัด
-                "minYaw": -90,        // ล็อกหมุนซ้ายสุด
-                "maxYaw": 90          // ล็อกหมุนขวาสุด
+                "haov": 200,
+                "vaov": 70,
+                "vOffset": 0,
+                "hfov": 90,
+                "minHfov": 50,
+                "maxHfov": 110,
+                "minPitch": -25,
+                "maxPitch": 25,
+                "minYaw": -90,
+                "maxYaw": 90
             });
         }
 
@@ -148,16 +142,25 @@
             document.getElementById("modal360").style.display = "none";
         }
 
-        // อ่านข้อมูลจาก plants.json
+        // อ่านข้อมูลจากทั้ง plants.json และ localStorage
         async function renderPlantDetail() {
             const id = getPlantIdFromURL();
             const cardContainer = document.getElementById('detailCard');
 
             try {
-                const response = await fetch('./plants.json');
-                const plantList = await response.json();
+                let baseData = [];
+                try {
+                    const response = await fetch('./plants.json');
+                    baseData = await response.json();
+                } catch (e) {
+                    console.warn("Cannot load plants.json", e);
+                }
                 
-                const plant = plantList.find(item => item.id === id);
+                // ดึงการ์ดที่สร้างใหม่จาก LocalStorage มารวมด้วย
+                const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
+                const allPlants = [...baseData, ...localData];
+                
+                const plant = allPlants.find(item => item.id === id);
 
                 if (plant) {
                     cardContainer.innerHTML = `
@@ -166,12 +169,12 @@
                                 <img class="main-img" src="${plant.image}" alt="${plant.name}">
                             </div>
                             <button class="btn-open-360" onclick="open360Viewer('${plant.panoramaImage}')">
-                                เปิดมุมมอง 180° (เลื่อนซ้ายขวา)
+                                🌐 เปิดมุมมอง 180° (เลื่อนดูอิสระ)
                             </button>
                         </div>
 
                         <div class="right-column">
-                            <span class="badge-type">${plant.type}</span>
+                            <span class="badge-type">${plant.type || plant.category}</span>
                             <h1 class="tree-title">${plant.name}</h1>
                             <div class="scientific-name">${plant.scientific}</div>
 
