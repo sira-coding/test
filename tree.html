@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รายละเอียดธรรมชาติ - My KU My Nature</title>
 
-    <!-- แท็บเบราว์เซอร์ (Favicon) -->
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,18 +31,14 @@
         body.dark-mode .theme-toggle { background: #2a352c; color: #ffeb3b; border-color: #3e4e40; }
 
         .top-bar { background: white; padding: 14px 6%; border-bottom: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: space-between; transition: background 0.3s; }
-        
         .top-bar-left { display: flex; align-items: center; gap: 18px; }
         .back-btn { background: none; border: none; font-size: 15px; color: #2e7d32; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-        .back-btn:hover { text-decoration: underline; }
-
         .header-logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; border-left: 1px solid #ddd; padding-left: 18px; }
         body.dark-mode .header-logo-link { border-left-color: #3e4e40; }
         .header-logo-img { height: 34px; width: auto; object-fit: contain; }
         .logo-text { color: #2e7d32; font-weight: bold; font-size: 16px; letter-spacing: 1px; }
 
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 16px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-
         .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
         .detail-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.08); display: flex; flex-wrap: wrap; transition: background 0.3s; }
 
@@ -109,6 +107,19 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOnvU6c3-EouUDoxzxDSTTEI-siU3d0fo",
+            authDomain: "mykumynature.firebaseapp.com",
+            databaseURL: "https://mykumynature-default-rtdb.firebaseio.com",
+            projectId: "mykumynature",
+            storageBucket: "mykumynature.firebasestorage.app",
+            messagingSenderId: "871727030249",
+            appId: "1:871727030249:web:c0ffea6461c0503765f578",
+            measurementId: "G-BE88SS6HLJ"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         let pannellumViewer = null;
 
         function getPlantIdFromURL() {
@@ -142,25 +153,12 @@
             document.getElementById("modal360").style.display = "none";
         }
 
-        // อ่านข้อมูลจากทั้ง plants.json และ localStorage
-        async function renderPlantDetail() {
+        function renderPlantDetail() {
             const id = getPlantIdFromURL();
             const cardContainer = document.getElementById('detailCard');
 
-            try {
-                let baseData = [];
-                try {
-                    const response = await fetch('./plants.json');
-                    baseData = await response.json();
-                } catch (e) {
-                    console.warn("Cannot load plants.json", e);
-                }
-                
-                // ดึงการ์ดที่สร้างใหม่จาก LocalStorage มารวมด้วย
-                const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
-                const allPlants = [...baseData, ...localData];
-                
-                const plant = allPlants.find(item => item.id === id);
+            db.ref('plants/' + id).once('value', (snapshot) => {
+                const plant = snapshot.val();
 
                 if (plant) {
                     cardContainer.innerHTML = `
@@ -210,17 +208,13 @@
                         </div>
                     `;
                 }
-            } catch (error) {
-                console.error("Error loading plant details:", error);
-            }
+            });
         }
 
         function toggleDarkMode() {
-            const body = document.body;
-            const btn = document.getElementById("themeToggleBtn");
-            body.classList.toggle("dark-mode");
-            const isDark = body.classList.contains("dark-mode");
-            btn.innerHTML = isDark ? "☀️" : "🌙";
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            document.getElementById("themeToggleBtn").innerHTML = isDark ? "☀️" : "🌙";
             localStorage.setItem("theme", isDark ? "dark" : "light");
         }
 
