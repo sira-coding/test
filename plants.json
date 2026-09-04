@@ -100,5 +100,22 @@
     "image": "https://lh3.googleusercontent.com/d/1I6N_b4GTddVAH6K1RcArlTI7AsX-SwBQ",
     "panoramaImage": "https://lh3.googleusercontent.com/d/1I6N_b4GTddVAH6K1RcArlTI7AsX-SwBQ",
     "description": "เห็ดชนิดใหม่ที่สำรวจพบเพิ่มเติมในพื้นที่ที่มีความชื้นสูง"
+  },
+  {
+    "id": "KU007",
+    "name": "🧑🏿‍🌾 พรี่ภีม",
+    "scientific": "หลับ",
+    "type": "คน",
+    "category": "เห็ดรา",
+    "family": "Physalacriaceae",
+    "avgAge": "1 - 2 สัปดาห์",
+    "location": "ขอนไม้ชื้นบริเวณข้างหอพัก",
+    "coordinates": "17.2891° N, 104.1145° E",
+    "lat": 17.2891,
+    "lng": 104.1145,
+    "icon": "🍄",
+    "image": "https://lh3.googleusercontent.com/d//1E9zEk-b9xeRvPdU34j2X-ztgIPF0Zsgu",
+    "panoramaImage": "https://lh3.googleusercontent.com/d//1E9zEk-b9xeRvPdU34j2X-ztgIPF0Zsgu",
+    "description": "เห็ดชนิดใหม่ที่สำรวจพบเพิ่มเติมในพื้นที่ที่มีความชื้นสูง"
   }
 ]
