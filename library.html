@@ -52,11 +52,16 @@
         .overlay.active { display: block; }
 
         /* User Profile Box ใน Sidebar */
-        .user-profile-box { background: #e8f5e9; padding: 14px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
+        .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
         body.dark-mode .user-profile-box { background: #2a352c; }
-        .user-profile-name { font-weight: bold; color: #2e7d32; font-size: 15px; margin-bottom: 4px; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
+        .user-profile-name { font-weight: bold; color: #2e7d32; font-size: 15px; margin-bottom: 2px; }
         body.dark-mode .user-profile-name { color: #81c784; }
-        .btn-logout { background: #d32f2f; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-top: 6px; font-weight: bold; }
+        .user-role-badge { font-size: 11px; color: #666; margin-bottom: 10px; }
+        body.dark-mode .user-role-badge { color: #aaa; }
+        .profile-btn-group { display: flex; gap: 6px; justify-content: center; }
+        .btn-edit-profile { background: #2e7d32; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
+        .btn-logout { background: #d32f2f; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
 
         main { max-width: 1200px; margin: auto; padding: 35px 25px; }
         .heading h1 { font-size: 32px; margin-bottom: 6px; }
@@ -97,6 +102,10 @@
         .auth-switch-text { text-align: center; font-size: 13px; margin-top: 15px; color: #666; }
         .auth-switch-text span { color: #2e7d32; cursor: pointer; font-weight: bold; text-decoration: underline; }
 
+        .avatar-presets { display: flex; gap: 10px; margin-top: 8px; justify-content: center; }
+        .avatar-preset-img { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .avatar-preset-img:hover, .avatar-preset-img.selected { border-color: #2e7d32; transform: scale(1.1); }
+
         @media (max-width: 600px) {
             .search { width: 120px; }
             .heading h1 { font-size: 24px; }
@@ -120,17 +129,20 @@
 
         <!-- กล่องโพรไฟล์เมื่อล็อกอินแล้ว -->
         <div class="user-profile-box" id="userProfileBox" style="display: none;">
+            <img class="user-avatar" id="userAvatarImg" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
             <div class="user-profile-name" id="userProfileName">👤 User Name</div>
-            <button class="btn-logout" onclick="logoutUser()">ออกจากระบบ</button>
+            <div class="user-role-badge" id="userRoleBadge">สมาชิกทั่วไป</div>
+            <div class="profile-btn-group">
+                <button class="btn-edit-profile" id="btnEditProfile" onclick="openEditProfileModal()">✏️ แก้ไขโพรไฟล์</button>
+                <button class="btn-logout" onclick="logoutUser()">ออกจากระบบ</button>
+            </div>
         </div>
 
         <ul class="sidebar-menu">
-            <!-- ปุ่มเข้าสู่ระบบแบบรวม (อันเดียวทั้งผู้ใช้และแอดมิน) -->
             <li id="userAuthMenuItem">
                 <a href="#" onclick="openAuthModal('login')">👤 เข้าสู่ระบบ / สมัครสมาชิก</a>
             </li>
 
-            <!-- เมนูเพิ่มการ์ดพืช (แสดงเฉพาะแอดมิน) -->
             <li id="adminAddMenuItem" style="display: none;">
                 <a href="#" onclick="openAddPlantModal()" style="color: #2e7d32; background: #e8f5e9;">➕ เพิ่มการ์ดต้นไม้ใหม่</a>
             </li>
@@ -196,7 +208,6 @@
                 <button class="sidebar-close" onclick="closeAuthModal()">✕</button>
             </div>
 
-            <!-- ฟอร์มเข้าสู่ระบบ -->
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>ชื่อผู้ใช้ (Username)</label>
@@ -212,7 +223,6 @@
                 </div>
             </form>
 
-            <!-- ฟอร์มสมัครสมาชิก -->
             <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
                 <div class="form-group">
                     <label>ชื่อ - นามสกุล</label>
@@ -230,6 +240,39 @@
                 <div class="auth-switch-text">
                     มีบัญชีอยู่แล้ว? <span onclick="switchAuthMode('login')">เข้าสู่ระบบที่นี่</span>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal แก้ไขโพรไฟล์ -->
+    <div class="admin-modal" id="editProfileModal">
+        <div class="admin-modal-content">
+            <div class="modal-header">
+                <h2>✏️ แก้ไขโพรไฟล์ส่วนตัว</h2>
+                <button class="sidebar-close" onclick="closeEditProfileModal()">✕</button>
+            </div>
+            <form id="editProfileForm" onsubmit="handleSaveProfile(event)">
+                <div class="form-group">
+                    <label>ชื่อ - นามสกุล</label>
+                    <input type="text" id="editFullName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>เลือกอวตารประจำตัว</label>
+                    <div class="avatar-presets">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=tree" class="avatar-preset-img" onclick="selectPresetAvatar(this.src)">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=flower" class="avatar-preset-img" onclick="selectPresetAvatar(this.src)">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=leaf" class="avatar-preset-img" onclick="selectPresetAvatar(this.src)">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=forest" class="avatar-preset-img" onclick="selectPresetAvatar(this.src)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>หรือวาง URL รูปภาพโปรไฟล์ของคุณ</label>
+                    <input type="text" id="editAvatarUrl" placeholder="https://...">
+                </div>
+
+                <button type="submit" class="btn-submit">💾 บันทึกเปลี่ยนแปลง</button>
             </form>
         </div>
     </div>
@@ -327,10 +370,10 @@
         let map = null;
         let currentView = 'library';
         let currentCategory = "all";
-        let currentUser = null; // เก็บข้อมูลผู้ใช้หรือแอดมินที่ล็อกอินอยู่
+        let currentUser = null;
 
         /* =========================
-           ระบบสมัครสมาชิก / ล็อกอิน
+           ระบบสมัครสมาชิก / ล็อกอิน / แก้ไขโพรไฟล์
         ========================= */
         function openAuthModal(mode = 'login') {
             closeSidebar();
@@ -378,10 +421,12 @@
                 if (snapshot.exists()) {
                     alert("❌ ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว กรุณาใช้ชื่ออื่น");
                 } else {
+                    const defaultAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
                     db.ref('users/' + username).set({
                         fullName: fullName,
                         username: username,
                         password: password,
+                        avatar: defaultAvatar,
                         role: 'user',
                         createdAt: new Date().toISOString()
                     }).then(() => {
@@ -398,11 +443,11 @@
             const username = document.getElementById("loginUsername").value.trim();
             const password = document.getElementById("loginPassword").value.trim();
 
-            // เช็กว่าเป็นบัญชีแอดมินหรือไม่
             if (username === "admin123" && password === "admin09091") {
                 currentUser = {
                     fullName: "แอดมิน (Admin)",
                     username: "admin123",
+                    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin123",
                     role: "admin"
                 };
                 localStorage.setItem("ku_user", JSON.stringify(currentUser));
@@ -413,7 +458,6 @@
                 return;
             }
 
-            // ถ้าไม่ใช่แอดมิน เช็กกับฐานข้อมูลผู้ใช้ทั่วไป
             db.ref('users/' + username.toLowerCase()).once('value', (snapshot) => {
                 const userData = snapshot.val();
                 if (userData && userData.password === password) {
@@ -427,6 +471,44 @@
                     alert("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
                 }
             });
+        }
+
+        function openEditProfileModal() {
+            if (!currentUser) return;
+            document.getElementById("editFullName").value = currentUser.fullName;
+            document.getElementById("editAvatarUrl").value = currentUser.avatar || "";
+            document.getElementById("editProfileModal").style.display = "flex";
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById("editProfileModal").style.display = "none";
+        }
+
+        function selectPresetAvatar(url) {
+            document.getElementById("editAvatarUrl").value = url;
+        }
+
+        function handleSaveProfile(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const newName = document.getElementById("editFullName").value.trim();
+            const newAvatar = document.getElementById("editAvatarUrl").value.trim() || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`;
+
+            currentUser.fullName = newName;
+            currentUser.avatar = newAvatar;
+            localStorage.setItem("ku_user", JSON.stringify(currentUser));
+
+            if (currentUser.role !== 'admin') {
+                db.ref('users/' + currentUser.username).update({
+                    fullName: newName,
+                    avatar: newAvatar
+                });
+            }
+
+            updateUserUI();
+            closeEditProfileModal();
+            alert("✅ อัปเดตข้อมูลโพรไฟล์สำเร็จ!");
         }
 
         function logoutUser() {
@@ -447,20 +529,27 @@
         function updateUserUI() {
             const profileBox = document.getElementById("userProfileBox");
             const profileName = document.getElementById("userProfileName");
+            const avatarImg = document.getElementById("userAvatarImg");
+            const roleBadge = document.getElementById("userRoleBadge");
             const userMenuItem = document.getElementById("userAuthMenuItem");
             const adminAddItem = document.getElementById("adminAddMenuItem");
+            const btnEditProfile = document.getElementById("btnEditProfile");
 
             if (currentUser) {
                 profileBox.style.display = "block";
-                profileName.innerText = currentUser.role === 'admin' ? `🔑 ${currentUser.fullName}` : `👤 ${currentUser.fullName}`;
+                profileName.innerText = currentUser.fullName;
+                avatarImg.src = currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`;
                 userMenuItem.style.display = "none";
 
-                // หากเป็นแอดมิน แสดงปุ่มลบการ์ดและปุ่มเพิ่มพืชใหม่
                 if (currentUser.role === 'admin') {
+                    roleBadge.innerText = "🔑 ผู้ดูแลระบบ (Admin)";
                     adminAddItem.style.display = "block";
+                    btnEditProfile.style.display = "none";
                     document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "flex");
                 } else {
+                    roleBadge.innerText = "👤 สมาชิกทั่วไป";
                     adminAddItem.style.display = "none";
+                    btnEditProfile.style.display = "inline-block";
                     document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "none");
                 }
             } else {
