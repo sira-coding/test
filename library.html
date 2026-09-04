@@ -207,7 +207,7 @@
                         <label style="margin-bottom:0;">ชื่อต้นไม้/พืช</label>
                         <button type="button" class="btn-ai-search" onclick="autoFillPlantDataWithAI()">🤖 ดึงข้อมูลด้วย AI</button>
                     </div>
-                    <input type="text" id="plantName" placeholder="เช่น นนทรี, ราชพฤกษ์, ชงโค" style="margin-top:5px;" required>
+                    <input type="text" id="plantName" placeholder="เช่น ดอกกุหลาบ, นนทรี, ราชพฤกษ์" style="margin-top:5px;" required>
                 </div>
 
                 <div class="form-group">
@@ -283,7 +283,6 @@
         let currentCategory = "all";
         let isAdminLoggedIn = false;
 
-        // โหลดข้อมูลจาก plants.json และ localStorage
         async function loadPlantsData() {
             try {
                 const response = await fetch('./plants.json');
@@ -299,7 +298,6 @@
             }
         }
 
-        // สร้างการ์ด HTML
         function renderPlantCards(plants) {
             const grid = document.getElementById("plantGrid");
             const emptyMsg = document.getElementById("emptyFavMsg");
@@ -327,7 +325,7 @@
         }
 
         /* =========================
-           ระบบแอดมิน, GPS & AI Auto-fill
+           ระบบแอดมิน, GPS & AI Smart Parsing
         ========================= */
 
         function handleAdminAuth() {
@@ -388,7 +386,6 @@
             document.getElementById("addPlantModal").style.display = "none";
         }
 
-        // ดึงพิกัด GPS ปัจจุบัน
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 const btn = document.querySelector('.btn-get-location');
@@ -412,7 +409,7 @@
             }
         }
 
-        // ระบบ AI ดึงข้อมูลพืชอัตโนมัติจากชื่อ
+        // AI แยกข้อมูลแล้วหยอดลงช่องแยกให้ถูกต้อง
         async function autoFillPlantDataWithAI() {
             const rawName = document.getElementById("plantName").value.trim();
             if (!rawName) {
@@ -420,38 +417,26 @@
                 return;
             }
 
-            const cleanName = rawName.replace(/^[^\w\s\u0E00-\u0E7F]+/, '').trim(); // ลบอีโมจิข้างหน้าออก
+            const cleanName = rawName.replace(/^[^\w\s\u0E00-\u0E7F]+/, '').trim();
             const btn = document.querySelector('.btn-ai-search');
             btn.innerText = "🤖 AI กำลังค้นหา...";
 
             try {
-                // ค้นหาผ่าน Wikipedia API ภาษาไทย
-                const wikiUrl = `https://th.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanName)}`;
-                const response = await fetch(wikiUrl);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.extract) {
-                        document.getElementById("plantDescription").value = data.extract;
-                    }
-                }
-
-                // AI Knowledge Base สำรองในตัวสำหรับเติมชื่อวิทยาศาสตร์/วงศ์/อายุ
+                // 1. Knowledge Base ในตัวสำหรับพืชพบบ่อย
                 const knowledgeBase = {
-                    "นนทรี": { scientific: "Peltophorum pterocarpum", family: "Leguminosae-Caesalpinioideae (วงศ์ถั่ว)", avgAge: "50 - 80 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
-                    "ราชพฤกษ์": { scientific: "Cassia fistula", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก" },
-                    "คูน": { scientific: "Cassia fistula", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก" },
-                    "ชงโค": { scientific: "Bauhinia purpurea", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "20 - 40 ปี", icon: "🌸", category: "ไม้ดอก" },
-                    "หางนกยูงฝรั่ง": { scientific: "Delonix regia", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "30 - 60 ปี", icon: "🌺", category: "ไม้ดอก" },
-                    "พญาสัตบรรณ": { scientific: "Alstonia scholaris", family: "Apocynaceae (วงศ์ตีนเป็ด)", avgAge: "40 - 70 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
-                    "ตีนเป็ด": { scientific: "Alstonia scholaris", family: "Apocynaceae (วงศ์ตีนเป็ด)", avgAge: "40 - 70 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
-                    "มะขาม": { scientific: "Tamarindus indica", family: "Fabaceae (วงศ์ถั่ว)", avgAge: "80 - 150 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
-                    "สัก": { scientific: "Tectona grandis", family: "Lamiaceae (วงศ์กะเพรา)", avgAge: "80 - 100 ปี", icon: "🌳", category: "ไม้ยืนต้น" },
-                    "ตะแบก": { scientific: "Lagerstroemia floribunda", family: "Lythraceae (วงศ์ตะแบก)", avgAge: "40 - 70 ปี", icon: "🌸", category: "ไม้ดอก" }
+                    "กุหลาบ": { scientific: "Rosa", family: "Rosaceae (วงศ์กุหลาบ)", avgAge: "5 - 15 ปี", icon: "🌹", category: "ไม้ดอก", desc: "กุหลาบเป็นไม้ดอกพุ่มนิยมปลูกเพื่อความสวยงาม ตกแต่งสวน ประดับบ้าน และใช้ในเชิงพาณิชย์" },
+                    "นนทรี": { scientific: "Peltophorum pterocarpum", family: "Leguminosae-Caesalpinioideae", avgAge: "50 - 80 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้ยืนต้นขนาดกลางถึงใหญ่ ดอกสีเหลืองมีกลิ่นหอมอ่อนๆ เป็นต้นไม้ประจำ มก." },
+                    "ราชพฤกษ์": { scientific: "Cassia fistula", family: "Fabaceae", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก", desc: "ไม้ดอกช่อย้อยสีเหลืองอร่าม สวยงามมากในช่วงฤดูร้อน" },
+                    "คูน": { scientific: "Cassia fistula", family: "Fabaceae", avgAge: "30 - 50 ปี", icon: "🌼", category: "ไม้ดอก", desc: "ไม้ดอกช่อย้อยสีเหลืองอร่าม สวยงามมากในช่วงฤดูร้อน" },
+                    "ชงโค": { scientific: "Bauhinia purpurea", family: "Fabaceae", avgAge: "20 - 40 ปี", icon: "🌸", category: "ไม้ดอก", desc: "ไม้ดอกทรงพุ่ม ดอกสีชมพูถึงม่วง สวยงามคล้ายกล้วยไม้" },
+                    "หางนกยูงฝรั่ง": { scientific: "Delonix regia", family: "Fabaceae", avgAge: "30 - 60 ปี", icon: "🌺", category: "ไม้ดอก", desc: "ไม้ยืนต้นผลัดใบ ให้ดอกสีแสดถึงแดงสดใสในช่วงฤดูร้อน" },
+                    "พญาสัตบรรณ": { scientific: "Alstonia scholaris", family: "Apocynaceae", avgAge: "40 - 70 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้ยืนต้นสูงใหญ่ ใบออกเป็นวงรอบกิ่ง มีกลิ่นหอมเฉพาะตัวช่วงต้นหนาว" },
+                    "ตีนเป็ด": { scientific: "Alstonia scholaris", family: "Apocynaceae", avgAge: "40 - 70 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้ยืนต้นสูงใหญ่ ใบออกเป็นวงรอบกิ่ง มีกลิ่นหอมเฉพาะตัวช่วงต้นหนาว" },
+                    "มะขาม": { scientific: "Tamarindus indica", family: "Fabaceae", avgAge: "80 - 150 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้ยืนต้นขนาดใหญ่ ทรงพุ่มทึบ ให้ผลเป็นฝักใช้รับประทาน" },
+                    "สัก": { scientific: "Tectona grandis", family: "Lamiaceae", avgAge: "80 - 100 ปี", icon: "🌳", category: "ไม้ยืนต้น", desc: "ไม้เศรษฐกิจขนาดใหญ่ เนื้อไม้มีคุณภาพดี ลายสวยงามและทนทาน" },
+                    "ตะแบก": { scientific: "Lagerstroemia floribunda", family: "Lythraceae", avgAge: "40 - 70 ปี", icon: "🌸", category: "ไม้ดอก", desc: "ไม้ยืนต้นผลัดใบ ให้ดอกสีม่วงอมชมพูสวยงาม สร้อยเปลือกต้นเรียบล่อน" }
                 };
 
-                // ตรวจจับคีย์เวิร์ด
                 let matched = false;
                 for (let key in knowledgeBase) {
                     if (cleanName.includes(key)) {
@@ -461,22 +446,64 @@
                         document.getElementById("plantAvgAge").value = info.avgAge;
                         document.getElementById("plantIcon").value = info.icon;
                         document.getElementById("plantCategory").value = info.category;
+                        document.getElementById("plantDescription").value = info.desc;
                         matched = true;
                         break;
                     }
                 }
 
-                btn.innerText = "✅ ดึงข้อมูลสำเร็จ";
-                setTimeout(() => { btn.innerText = "🤖 ดึงข้อมูลด้วย AI"; }, 2000);
+                // 2. ถ้าไม่เจอในคีย์เวิร์ด ดึง Wikipedia API แล้วสกัดคำแยกช่อง
+                if (!matched) {
+                    const wikiUrl = `https://th.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanName)}`;
+                    const response = await fetch(wikiUrl);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.extract) {
+                            const text = data.extract;
 
-                if (!matched && !document.getElementById("plantDescription").value) {
-                    alert("💡 AI ค้นพบข้อมูลเบื้องต้นเรียบร้อย! สามารถปรับแต่งรายละเอียดเพิ่มเติมในช่องกรอกได้เลยครับ");
+                            // หาชื่อวิทยาศาสตร์
+                            const latinMatch = text.match(/\(([A-Z][a-z]+(?:\s+[a-z]+)?)\)/);
+                            if (latinMatch) {
+                                document.getElementById("plantScientific").value = latinMatch[1];
+                            } else {
+                                document.getElementById("plantScientific").value = cleanName;
+                            }
+
+                            // หาชื่อวงศ์
+                            const familyMatch = text.match(/วงศ์\s+([A-Za-z\u0E00-\u0E7F]+)/);
+                            if (familyMatch) {
+                                document.getElementById("plantFamily").value = familyMatch[1];
+                            }
+
+                            // กำหนดประเภท
+                            if (cleanName.includes("ดอก") || cleanName.includes("กุหลาบ") || text.includes("ไม้ดอก")) {
+                                document.getElementById("plantCategory").value = "ไม้ดอก";
+                                document.getElementById("plantIcon").value = "🌸";
+                            } else if (cleanName.includes("เห็ด") || text.includes("เห็ด")) {
+                                document.getElementById("plantCategory").value = "เห็ดรา";
+                                document.getElementById("plantIcon").value = "🍄";
+                            } else {
+                                document.getElementById("plantCategory").value = "ไม้ยืนต้น";
+                                document.getElementById("plantIcon").value = "🌳";
+                            }
+
+                            if (!document.getElementById("plantAvgAge").value) {
+                                document.getElementById("plantAvgAge").value = "10 - 30 ปี";
+                            }
+
+                            document.getElementById("plantDescription").value = text;
+                        }
+                    }
                 }
+
+                btn.innerText = "✅ แยกข้อมูลลงช่องเรียบร้อย";
+                setTimeout(() => { btn.innerText = "🤖 ดึงข้อมูลด้วย AI"; }, 2000);
 
             } catch (err) {
                 console.error("AI Fetch Error:", err);
                 btn.innerText = "🤖 ดึงข้อมูลด้วย AI";
-                alert("⚠️ ไม่สามารถค้นหาข้อมูลอัตโนมัติได้ คุณสามารถกรอกรายละเอียดด้วยตัวเองได้เลยครับ");
+                alert("⚠️ ไม่สามารถค้นหาข้อมูลได้ กรุณากรอกรายละเอียดในช่องด้วยตนเองครับ");
             }
         }
 
