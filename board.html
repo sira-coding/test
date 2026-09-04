@@ -66,27 +66,35 @@
         .btn-create-post { background: #2e7d32; color: white; border: none; padding: 12px 24px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.25); transition: 0.2s; }
         .btn-create-post:hover { transform: translateY(-2px); background: #236327; }
 
-        .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; margin-top: 20px; }
+        .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
         
         /* การ์ดกระดาษโน้ตวินเทจ */
-        .paper-note { background: #fffdf0; border-radius: 4px; padding: 20px 18px; box-shadow: 3px 10px 20px rgba(0,0,0,0.12); position: relative; border: 1px solid #f0e6c2; transform: rotate(-1deg); transition: 0.3s; color: #333; }
+        .paper-note { background: #fffdf0; border-radius: 6px; overflow: hidden; box-shadow: 3px 10px 20px rgba(0,0,0,0.12); position: relative; border: 1px solid #f0e6c2; transform: rotate(-1deg); transition: 0.3s; color: #333; }
         .paper-note:nth-child(even) { transform: rotate(1.5deg); background: #fdfbf7; }
         .paper-note:hover { transform: scale(1.03) rotate(0deg); z-index: 10; box-shadow: 5px 15px 25px rgba(0,0,0,0.18); }
         
         /* สติกเกอร์/เทปแปะมุมกระดาษ */
-        .paper-note::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 70px; height: 20px; background: rgba(220, 210, 180, 0.5); border-left: 2px dashed rgba(255,255,255,0.5); border-right: 2px dashed rgba(255,255,255,0.5); backdrop-filter: blur(2px); }
+        .paper-note::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 70px; height: 20px; background: rgba(220, 210, 180, 0.6); border-left: 2px dashed rgba(255,255,255,0.5); border-right: 2px dashed rgba(255,255,255,0.5); backdrop-filter: blur(2px); z-index: 5; }
         
+        /* รูปปกผู้ใช้งาน */
+        .note-cover-img { width: 100%; height: 90px; object-fit: cover; border-bottom: 1px solid #eee; display: block; }
+
+        .note-body { padding: 16px; }
         .note-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px dashed #ddd; padding-bottom: 8px; }
         .note-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
         .note-user { font-weight: bold; font-size: 13px; color: #2e7d32; }
-        .note-date { font-size: 11px; color: #888; margin-left: auto; }
+        .note-timer { font-size: 10px; color: #d32f2f; background: #ffebee; padding: 2px 6px; border-radius: 10px; margin-left: auto; font-weight: bold; }
 
         /* กรอบโพลารอยด์แปะรูปต้นไม้ */
         .polaroid-frame { background: white; padding: 8px 8px 12px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #eee; margin-bottom: 12px; text-align: center; }
-        .polaroid-img { width: 100%; height: 160px; object-fit: cover; border-radius: 2px; }
+        .polaroid-img { width: 100%; height: 150px; object-fit: cover; border-radius: 2px; }
         .polaroid-title { font-size: 13px; font-weight: bold; color: #444; margin-top: 6px; }
 
         .note-text { font-size: 14px; line-height: 1.5; color: #2c3e50; word-break: break-word; }
+        
+        /* ปุ่มลบสำหรับแอดมิน */
+        .btn-delete-post { width: 100%; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 6px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-delete-post:hover { background: #d32f2f; color: white; }
 
         /* Modal Popups */
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
@@ -116,7 +124,6 @@
             <button class="sidebar-close" onclick="closeSidebar()">✕</button>
         </div>
 
-        <!-- กล่องโพรไฟล์เมื่อล็อกอิน -->
         <div class="user-profile-box" id="userProfileBox" style="display: none;">
             <img class="user-avatar" id="userAvatarImg" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
             <div class="user-profile-name" id="userProfileName">👤 User Name</div>
@@ -146,7 +153,7 @@
     <main>
         <div class="heading">
             <h1>Nature Board 📌</h1>
-            <p>แปะการ์ดพืช แชร์ความรู้สึกและความประทับใจที่คุณมีต่อธรรมชาติรอบตัว</p>
+            <p>แปะการ์ดพืช แชร์ความรู้สึกและความประทับใจ (โน้ตจะคงอยู่เป็นเวลา 24 ชั่วโมง)</p>
         </div>
 
         <div class="board-header-action">
@@ -154,7 +161,7 @@
         </div>
 
         <div class="board-grid" id="boardGrid">
-            <!-- การ์ดโน้ตกระดาษจะถูกซิงค์มาวางที่นี่ -->
+            <!-- การ์ดโน้ตจะถูกซิงค์มาวางที่นี่ -->
         </div>
     </main>
 
@@ -171,6 +178,10 @@
                     <select id="postPlantSelect" required>
                         <option value="">-- กรุณาเลือกต้นไม้ --</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>ลิงก์รูปภาพปกด้านบน (Cover Image) - ไม่บังคับ</label>
+                    <input type="text" id="postCoverImage" placeholder="https://drive.google.com/file/d/...">
                 </div>
                 <div class="form-group">
                     <label>เขียนความรู้สึกหรือเรื่องราวของคุณ</label>
@@ -199,9 +210,14 @@
         let allPlantsData = [];
         let currentUser = null;
 
-        /* =========================
-           ระบบโหลดการ์ดพืช + ซิงค์บอร์ด Realtime
-        ========================= */
+        function convertGoogleDriveUrl(url) {
+            if (!url) return "";
+            if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
+            const regExp = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
+            const match = url.match(regExp);
+            return match ? `https://lh3.googleusercontent.com/d/${match[1] || match[2]}` : url.trim();
+        }
+
         function loadPlantsList() {
             db.ref('plants').once('value', (snapshot) => {
                 const data = snapshot.val();
@@ -209,6 +225,9 @@
             });
         }
 
+        /* =========================
+           ระบบเว็บบอร์ดพูดคุย (มีรูปปก & ลบใน 24 ชม.)
+        ========================= */
         function syncBoardPosts() {
             db.ref('posts').on('value', (snapshot) => {
                 const postsData = snapshot.val();
@@ -220,27 +239,66 @@
                     return;
                 }
 
+                const now = new Date().getTime();
+                const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+                let visibleCount = 0;
+
                 const posts = Object.values(postsData).reverse();
                 posts.forEach(post => {
+                    const postTime = new Date(post.createdAt).getTime();
+                    const ageMs = now - postTime;
+
+                    // เช็กว่าเกิน 24 ชม. หรือยัง หากเกินจะข้ามการแสดงผลและสั่งลบใน DB
+                    if (ageMs > twentyFourHoursMs) {
+                        db.ref('posts/' + post.id).remove();
+                        return;
+                    }
+
+                    visibleCount++;
+                    const hoursLeft = Math.max(1, Math.ceil((twentyFourHoursMs - ageMs) / (1000 * 60 * 60)));
+
                     const note = document.createElement("div");
                     note.className = "paper-note";
-                    const dateStr = new Date(post.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+
+                    // รูปปก Cover Image ด้านบน
+                    const coverHtml = post.coverImage ? `<img class="note-cover-img" src="${post.coverImage}" alt="Cover">` : '';
+
+                    // ปุ่มลบสำหรับ Admin
+                    const adminDeleteBtn = (currentUser && currentUser.role === 'admin') 
+                        ? `<button class="btn-delete-post" onclick="deletePost('${post.id}')">🗑️ ลบโน้ตนี้ (Admin)</button>` 
+                        : '';
 
                     note.innerHTML = `
-                        <div class="note-header">
-                            <img class="note-avatar" src="${post.userAvatar}" alt="${post.userName}">
-                            <span class="note-user">${post.userName}</span>
-                            <span class="note-date">${dateStr}</span>
+                        ${coverHtml}
+                        <div class="note-body">
+                            <div class="note-header">
+                                <img class="note-avatar" src="${post.userAvatar}" alt="${post.userName}">
+                                <span class="note-user">${post.userName}</span>
+                                <span class="note-timer">⏳ เหลือ ${hoursLeft} ชม.</span>
+                            </div>
+                            <div class="polaroid-frame">
+                                <img class="polaroid-img" src="${post.plantImage}" alt="${post.plantName}">
+                                <div class="polaroid-title">${post.plantIcon || ''} ${post.plantName}</div>
+                            </div>
+                            <div class="note-text">${post.content}</div>
+                            ${adminDeleteBtn}
                         </div>
-                        <div class="polaroid-frame">
-                            <img class="polaroid-img" src="${post.plantImage}" alt="${post.plantName}">
-                            <div class="polaroid-title">${post.plantIcon || ''} ${post.plantName}</div>
-                        </div>
-                        <div class="note-text">${post.content}</div>
                     `;
                     grid.appendChild(note);
                 });
+
+                if (visibleCount === 0) {
+                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#777; padding:40px;">📌 โน้ตทั้งหมดหมดอายุแล้ว มาเขียนโน้ตใหม่กันเถอะ!</div>`;
+                }
             });
+        }
+
+        function deletePost(postId) {
+            if (confirm("⚠️ แอดมินต้องการลบโน้ตข้อความนี้ใช่หรือไม่?")) {
+                db.ref('posts/' + postId).remove()
+                    .then(() => alert("🗑️ ลบโน้ตเรียบร้อยแล้ว"))
+                    .catch(err => alert("❌ ลบไม่สำเร็จ: " + err.message));
+            }
         }
 
         function openCreatePostModal() {
@@ -267,6 +325,7 @@
             if (!currentUser) return;
 
             const plantId = document.getElementById("postPlantSelect").value;
+            const coverImageInput = document.getElementById("postCoverImage").value.trim();
             const content = document.getElementById("postContent").value.trim();
             const plant = allPlantsData.find(p => p.id === plantId);
 
@@ -281,6 +340,7 @@
                 userId: currentUser.username,
                 userName: currentUser.fullName,
                 userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
+                coverImage: convertGoogleDriveUrl(coverImageInput),
                 plantId: plant.id,
                 plantName: plant.name,
                 plantImage: plant.image,
@@ -290,7 +350,7 @@
             }).then(() => {
                 closeCreatePostModal();
                 document.getElementById("createPostForm").reset();
-                alert("🎉 แปะโน้ตความรู้สึกเรียบร้อยแล้ว!");
+                alert("🎉 แปะโน้ตความรู้สึกเรียบร้อยแล้ว! (โน้ตจะอยู่เป็นเวลา 24 ชั่วโมง)");
             });
         }
 
