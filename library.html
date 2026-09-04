@@ -25,6 +25,7 @@
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
+        body.dark-mode .btn-get-location { background: #2a352c; color: #81c784; border-color: #3e4e40; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -85,6 +86,11 @@
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
         .form-row { display: flex; gap: 12px; }
         .form-row .form-group { flex: 1; }
+        
+        .location-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .btn-get-location { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-get-location:hover { background: #2e7d32; color: white; }
+
         .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 14px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-submit:hover { background: #236327; }
 
@@ -232,14 +238,18 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>พิกัด Lat (ละติจูด)</label>
-                        <input type="number" step="any" id="plantLat" placeholder="17.2882" required>
+                <div class="form-group">
+                    <div class="location-header-box">
+                        <label style="margin-bottom:0;">พิกัดตำแหน่ง (Lat / Lng)</label>
+                        <button type="button" class="btn-get-location" onclick="getCurrentLocation()">📍 พิกัดปัจจุบัน</button>
                     </div>
-                    <div class="form-group">
-                        <label>พิกัด Lng (ลองจิจูด)</label>
-                        <input type="number" step="any" id="plantLng" placeholder="104.1123" required>
+                    <div class="form-row" style="margin-top: 5px;">
+                        <div class="form-group">
+                            <input type="number" step="any" id="plantLat" placeholder="Lat (เช่น 17.2882)" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="number" step="any" id="plantLng" placeholder="Lng (เช่น 104.1123)" required>
+                        </div>
                     </div>
                 </div>
 
@@ -315,7 +325,7 @@
         }
 
         /* =========================
-           ระบบแอดมิน & สร้างการ์ดใหม่
+           ระบบแอดมิน & ดึงพิกัดปัจจุบัน
         ========================= */
 
         function handleAdminAuth() {
@@ -362,7 +372,6 @@
                 }
             });
             const nextNum = maxNum + 1;
-            // จัดการใส่ 0 ข้างหน้าให้อยู่ในฟอร์แมต KU001, KU010, KU100
             const paddedNum = String(nextNum).padStart(3, '0');
             return `KU${paddedNum}`;
         }
@@ -375,6 +384,30 @@
 
         function closeAddPlantModal() {
             document.getElementById("addPlantModal").style.display = "none";
+        }
+
+        // ดึงตำแหน่งพิกัด GPS ปัจจุบันของเครื่องแอดมิน
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                const btn = document.querySelector('.btn-get-location');
+                btn.innerText = "⏳ กำลังดึงพิกัด...";
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById("plantLat").value = position.coords.latitude.toFixed(6);
+                        document.getElementById("plantLng").value = position.coords.longitude.toFixed(6);
+                        btn.innerText = "✅ ได้พิกัดแล้ว";
+                        setTimeout(() => { btn.innerText = "📍 พิกัดปัจจุบัน"; }, 2000);
+                    },
+                    (error) => {
+                        alert("⚠️ ไม่สามารถดึงตำแหน่งได้ กรุณาเปิดสิทธิ์ GPS บนอุปกรณ์ของคุณ");
+                        btn.innerText = "📍 พิกัดปัจจุบัน";
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("⚠️ อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับระบบดึงพิกัดตำแหน่ง");
+            }
         }
 
         function saveNewPlant(event) {
@@ -401,7 +434,6 @@
                 description: document.getElementById("plantDescription").value
             };
 
-            // บันทึกเข้า Array และ LocalStorage
             allPlantsData.push(newPlant);
             
             const localData = JSON.parse(localStorage.getItem("custom_plants_data") || "[]");
@@ -416,7 +448,6 @@
             alert(`สร้างการ์ดพืช ${newPlant.id} (${newPlant.name}) สำเร็จแล้ว!`);
         }
 
-        // ปุ่มดาวน์โหลดไฟล์ plants.json ฉบับอัปเดตไปใช้งานต่อ
         function exportPlantsJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allPlantsData, null, 2));
             const downloadAnchor = document.createElement('a');
