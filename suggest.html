@@ -22,6 +22,8 @@
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .suggest-card { background: #1e2620; color: #e0e6e1; }
         body.dark-mode input, body.dark-mode textarea, body.dark-mode select { background: #2a352c; border-color: #3e4e40; color: #fff; }
+        body.dark-mode .btn-get-location, body.dark-mode .btn-add-coord { background: #2a352c; color: #81c784; border-color: #3e4e40; }
+        body.dark-mode .coord-item { background: #2a352c; border-color: #3e4e40; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -63,6 +65,15 @@
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 14px; outline: none; }
         .form-row { display: flex; gap: 12px; }
         .form-row .form-group { flex: 1; }
+
+        .field-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .btn-get-location, .btn-add-coord { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-get-location:hover, .btn-add-coord:hover { background: #2e7d32; color: white; }
+
+        .coord-list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; max-height: 180px; overflow-y: auto; }
+        .coord-item { display: flex; align-items: center; gap: 8px; background: #f8faf8; padding: 6px 10px; border-radius: 8px; border: 1px solid #e0e0e0; }
+        .coord-item input { margin-bottom: 0; padding: 8px 10px; font-size: 13px; }
+        .btn-remove-coord { background: #ffebee; color: #d32f2f; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; flex-shrink: 0; }
 
         .btn-submit-suggest { width: 100%; background: #2e7d32; color: white; border: none; padding: 14px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-submit-suggest:hover { background: #236327; }
@@ -166,6 +177,18 @@
                     </div>
                 </div>
 
+                <!-- ช่องกรอกละติจูด-ลองติจูดหลายจุด -->
+                <div class="form-group">
+                    <div class="field-header-box">
+                        <label style="margin-bottom:0;">รายการพิกัดตำแหน่ง (Lat / Lng)</label>
+                        <div>
+                            <button type="button" class="btn-get-location" onclick="getCurrentLocation()">📍 ดึงพิกัดปัจจุบันเพิ่ม</button>
+                            <button type="button" class="btn-add-coord" onclick="addCoordRow()">➕ เพิ่มพิกัด</button>
+                        </div>
+                    </div>
+                    <div class="coord-list-container" id="coordListContainer"></div>
+                </div>
+
                 <div class="form-group">
                     <label>คำอธิบาย/เรื่องราวเพิ่มเติม</label>
                     <textarea id="sugDescription" rows="4" placeholder="เล่ารายละเอียดหรือข้อสังเกตของพืชต้นนี้..."></textarea>
@@ -193,6 +216,59 @@
 
         let currentUser = null;
 
+        function addCoordRow(lat = '', lng = '') {
+            const container = document.getElementById("coordListContainer");
+            const item = document.createElement("div");
+            item.className = "coord-item";
+            item.innerHTML = `
+                <input type="number" step="any" class="coord-lat" placeholder="Lat (เช่น 17.2882)" value="${lat}">
+                <input type="number" step="any" class="coord-lng" placeholder="Lng (เช่น 104.1123)" value="${lng}">
+                <button type="button" class="btn-remove-coord" onclick="this.parentElement.remove()" title="ลบพิกัดนี้">✕</button>
+            `;
+            container.appendChild(item);
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                const btn = document.querySelector('.btn-get-location');
+                btn.innerText = "⏳ กำลังดึง...";
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lng = position.coords.longitude.toFixed(6);
+                        addCoordRow(lat, lng);
+                        btn.innerText = "✅ เพิ่มพิกัดเรียบร้อย";
+                        setTimeout(() => { btn.innerText = "📍 ดึงพิกัดปัจจุบันเพิ่ม"; }, 2000);
+                    },
+                    (error) => {
+                        alert("⚠️ ไม่สามารถดึงตำแหน่งได้ กรุณาเปิดสิทธิ์ GPS");
+                        btn.innerText = "📍 ดึงพิกัดปัจจุบันเพิ่ม";
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("⚠️ อุปกรณ์ไม่รองรับระบบ GPS");
+            }
+        }
+
+        function getLocationsFromForm() {
+            const latInputs = document.querySelectorAll(".coord-lat");
+            const lngInputs = document.querySelectorAll(".coord-lng");
+            const locations = [];
+
+            for (let i = 0; i < latInputs.length; i++) {
+                const lat = parseFloat(latInputs[i].value);
+                const lng = parseFloat(lngInputs[i].value);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    locations.push({ lat: lat, lng: lng });
+                }
+            }
+
+            if (locations.length === 0) locations.push({ lat: 17.2882, lng: 104.1123 });
+            return locations;
+        }
+
         function checkUserSession() {
             const savedUser = localStorage.getItem("ku_user");
             if (savedUser) {
@@ -219,7 +295,9 @@
                 return;
             }
 
+            const locations = getLocationsFromForm();
             const sugRef = db.ref('pending_plants').push();
+
             sugRef.set({
                 id: sugRef.key,
                 userId: currentUser.username,
@@ -233,10 +311,13 @@
                 family: document.getElementById("sugFamily").value.trim() || "-",
                 avgAge: document.getElementById("sugAvgAge").value.trim() || "-",
                 location: document.getElementById("sugLocation").value.trim() || "ภายใน มก.ฉกส.",
+                locations: locations,
                 description: document.getElementById("sugDescription").value.trim() || "ไม่มีข้อมูลรายละเอียดเพิ่มเติม",
                 createdAt: new Date().toISOString()
             }).then(() => {
                 document.getElementById("suggestForm").reset();
+                document.getElementById("coordListContainer").innerHTML = "";
+                addCoordRow();
                 alert("🎉 ส่งข้อมูลพืชให้แอดมินเรียบร้อยแล้ว! แอดมินจะทำการตรวจสอบข้อมูลครับ");
             }).catch(err => alert("❌ เกิดข้อผิดพลาด: " + err.message));
         }
@@ -259,6 +340,7 @@
             }
         })();
 
+        addCoordRow();
         checkUserSession();
     </script>
 </body>
