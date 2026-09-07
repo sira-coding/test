@@ -34,6 +34,9 @@
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
 
+        .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; text-decoration: none; display: flex; align-items: center; }
+        .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
@@ -70,6 +73,7 @@
 
         .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
         .status-badge.waiting { background: #fff3e0; color: #e65100; }
+        .status-badge.warning { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
         .status-badge.active { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; animation: pulse 1.5s infinite; }
 
         @keyframes pulse {
@@ -123,6 +127,7 @@
             <li><a href="./board.html">📌 บอร์ดพูดคุยความรู้สึก</a></li>
             <li><a href="./suggest.html">🌱 แนะนำให้รู้จัก</a></li>
             <li><a href="./harvest.html" class="active">🌾 ฤดูเก็บเกี่ยวผลผลิต</a></li>
+            <li><a href="./inbox.html">📬 กล่องข้อความ/การแจ้งเตือน</a></li>
             <li><a href="./library.html?view=map">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
         </ul>
     </div>
@@ -136,6 +141,9 @@
             </a>
         </div>
         <div class="header-actions">
+            <a href="./inbox.html" class="inbox-btn" id="inboxBtn">
+                📬 <span id="inboxBadge" class="inbox-badge" style="display: none;">0</span>
+            </a>
             <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()">🌙</button>
         </div>
     </header>
@@ -164,7 +172,7 @@
             <form id="harvestForm" onsubmit="saveHarvestData(event)">
                 <div class="form-group">
                     <label>เลือกพืชจากคลังธรรมชาติ</label>
-                    <select id="harvestPlantSelect" required onchange="onPlantSelectChange()">
+                    <select id="harvestPlantSelect" required>
                         <option value="">-- เลือกรายการพืช --</option>
                     </select>
                 </div>
@@ -243,6 +251,19 @@
                     document.getElementById("btnAddHarvest").style.display = "block";
                 }
             }
+            syncInboxBadge();
+        }
+
+        function syncInboxBadge() {
+            if (!currentUser) return;
+            db.ref(`user_notifications/${currentUser.username}`).on('value', (snapshot) => {
+                const notifs = snapshot.val();
+                const badge = document.getElementById("inboxBadge");
+                if (!notifs) { badge.style.display = "none"; return; }
+                const unreadCount = Object.values(notifs).filter(n => !n.isRead).length;
+                if (unreadCount > 0) { badge.innerText = unreadCount; badge.style.display = "flex"; }
+                else { badge.style.display = "none"; }
+            });
         }
 
         function loadPlantsList() {
@@ -306,12 +327,9 @@
                     const startMonth = parseInt(item.startMonth);
                     const endMonth = parseInt(item.endMonth);
 
-                    // วันเริ่มต้นของเดือนเก็บเกี่ยว
                     let startDate = new Date(currentYear, startMonth - 1, 1, 0, 0, 0);
-                    // วันสิ้นสุดของเดือนเก็บเกี่ยว (วันสุดท้ายของเดือนนั้น)
                     let endDate = new Date(currentYear, endMonth, 0, 23, 59, 59);
 
-                    // ถ้าเดือนสิ้นสุดน้อยกว่าเดือนเริ่มต้น (เช่น พ.ย. ถึง ก.พ. ข้ามปี)
                     if (endMonth < startMonth) {
                         if (now.getMonth() + 1 < startMonth) {
                             startDate = new Date(currentYear - 1, startMonth - 1, 1, 0, 0, 0);
@@ -320,32 +338,79 @@
                         }
                     }
 
+                    const diffMs = startDate - now;
+                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+                    // ==========================================
+                    // 🔔 ระบบตรวจสอบส่งการแจ้งเตือนอัตโนมัติ
+                    // ==========================================
+                    if (days <= 7 && days >= 0 && !item[`notified_7days_${currentYear}`]) {
+                        broadcastNotificationToAllUsers(
+                            `🌾 แจ้งเตือน: ${item.plantName} ใกล้ถึงเวลาเก็บเกี่ยว!`,
+                            `ผลผลิตของ "${item.plantName}" กำลังจะพร้อมเก็บเกี่ยวในอีก 7 วันข้างหน้า (ช่วงเดือน ${monthNames[startMonth]}) เตรียมตัวเก็บเกี่ยวกันได้เลย!`,
+                            'harvest'
+                        );
+                        db.ref(`harvest_schedule/${item.id}/notified_7days_${currentYear}`).set(true);
+                    }
+
                     if (now >= startDate && now <= endDate) {
-                        // ช่วงระหว่างฤดูเก็บเกี่ยว
+                        if (!item[`notified_start_${currentYear}`]) {
+                            broadcastNotificationToAllUsers(
+                                `🎉 ${item.plantName} สุกพร้อมเก็บเกี่ยวแล้ว!`,
+                                `ขณะนี้ผลผลิตของ "${item.plantName}" เข้าสู่ช่วงสุกพร้อมเก็บเกี่ยวเรียบร้อยแล้ว แวะไปเยี่ยมชมหรือเก็บเกี่ยวกันได้เลย!`,
+                                'harvest'
+                            );
+                            db.ref(`harvest_schedule/${item.id}/notified_start_${currentYear}`).set(true);
+                        }
+
                         badgeElem.className = "status-badge active";
                         badgeElem.innerText = "✨ สุกพร้อมเก็บเกี่ยวแล้ว!";
                         timerElem.className = "countdown-timer zero";
                         timerElem.innerText = "00:00:00 (อยู่ในช่วงเก็บเกี่ยว)";
+                    } else if (days <= 7 && days > 0) {
+                        badgeElem.className = "status-badge warning";
+                        badgeElem.innerText = `⚠️ อีก ${days} วัน จะพร้อมเก็บเกี่ยว!`;
+                        const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+                        const mins = Math.floor((diffMs / (1000 * 60)) % 60);
+                        const secs = Math.floor((diffMs / 1000) % 60);
+                        timerElem.className = "countdown-timer";
+                        timerElem.innerText = `${days}วัน ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                     } else {
-                        // นอกฤดูเก็บเกี่ยว (คำนวณเวลานับถอยหลังรอฤดูถัดไป)
                         let targetDate = startDate;
                         if (now > endDate) {
                             targetDate = new Date(currentYear + 1, startMonth - 1, 1, 0, 0, 0);
                         }
-
-                        const diffMs = targetDate - now;
-                        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
-                        const mins = Math.floor((diffMs / (1000 * 60)) % 60);
-                        const secs = Math.floor((diffMs / 1000) % 60);
+                        const futureDiffMs = targetDate - now;
+                        const fDays = Math.floor(futureDiffMs / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((futureDiffMs / (1000 * 60 * 60)) % 24);
+                        const mins = Math.floor((futureDiffMs / (1000 * 60)) % 60);
+                        const secs = Math.floor((futureDiffMs / 1000) % 60);
 
                         badgeElem.className = "status-badge waiting";
                         badgeElem.innerText = "⏳ รอช่วงเวลาผลผลิตออก";
                         timerElem.className = "countdown-timer";
-                        timerElem.innerText = `${days}วัน ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                        timerElem.innerText = `${fDays}วัน ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                     }
                 });
             }, 1000);
+        }
+
+        // ฟังก์ชันส่งข้อความแจ้งเตือนหาผู้ใช้ทุกคนในระบบ
+        function broadcastNotificationToAllUsers(title, message, status) {
+            db.ref('user_notifications').once('value', (snapshot) => {
+                const usersNotifs = snapshot.val();
+                if (!usersNotifs) return;
+
+                Object.keys(usersNotifs).forEach(username => {
+                    db.ref(`user_notifications/${username}`).push().set({
+                        title: title,
+                        message: message,
+                        status: status,
+                        isRead: false,
+                        createdAt: new Date().toISOString()
+                    });
+                });
+            });
         }
 
         function openAddHarvestModal() {
@@ -386,7 +451,6 @@
             }
 
             if (!found) {
-                // ค่าเริ่มต้นสุ่มตัวอย่างหากไม่พบในฐานข้อมูล
                 document.getElementById("startMonth").value = 5;
                 document.getElementById("endMonth").value = 7;
                 alert(`🤖 AI คาดการณ์ฤดูเก็บเกี่ยวเฉลี่ย: พฤษภาคม - กรกฎาคม`);
