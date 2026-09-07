@@ -609,7 +609,7 @@
         }
 
         /* =========================
-           กล่องจดหมาย Inbox & อนุมัติ/ปฏิเสธการ์ด
+           ระบบ Inbox & แจ้งเตือน (นับเฉพาะที่ยังไม่อ่าน + อ่านแล้วลบตัวเลข)
         ========================= */
         function syncInbox() {
             if (!currentUser) return;
@@ -626,9 +626,20 @@
                 db.ref(`user_notifications/${currentUser.username}`).on('value', (snapshot) => {
                     const notifs = snapshot.val();
                     const badge = document.getElementById("inboxBadge");
-                    const count = notifs ? Object.keys(notifs).length : 0;
-                    if (count > 0) { badge.innerText = count; badge.style.display = "flex"; }
-                    else { badge.style.display = "none"; }
+                    
+                    if (!notifs) {
+                        badge.style.display = "none";
+                        return;
+                    }
+
+                    const unreadCount = Object.values(notifs).filter(n => !n.isRead).length;
+
+                    if (unreadCount > 0) { 
+                        badge.innerText = unreadCount; 
+                        badge.style.display = "flex"; 
+                    } else { 
+                        badge.style.display = "none"; 
+                    }
                 });
             }
         }
@@ -681,6 +692,12 @@
                     listContainer.innerHTML = "";
                     if (!notifs) return listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:20px;">ไม่มีข้อความแจ้งเตือน</p>`;
 
+                    const updates = {};
+                    Object.keys(notifs).forEach(key => {
+                        updates[`user_notifications/${currentUser.username}/${key}/isRead`] = true;
+                    });
+                    db.ref().update(updates);
+
                     Object.values(notifs).reverse().forEach(n => {
                         const card = document.createElement("div");
                         card.className = "inbox-card-item";
@@ -723,13 +740,14 @@
                     image: defaultImg,
                     panoramaImage: defaultImg,
                     description: item.description,
-                    createdBy: item.userName // 👈 บันทึกชื่อผู้ใช้ที่ส่งเรื่องเสนอเข้ามา
+                    createdBy: item.userName
                 }).then(() => {
                     db.ref(`pending_plants/${pendingId}`).remove();
                     db.ref(`user_notifications/${item.userId}`).push().set({
                         title: "🎉 การเสนอพืชของคุณได้รับการอนุมัติแล้ว!",
                         message: `พืช "${item.name}" ถูกเพิ่มลงในคลังธรรมชาติเรียบร้อยแล้ว พร้อมโชว์เครดิตผู้ค้นพบชื่อคุณ`,
                         status: "approved",
+                        isRead: false,
                         createdAt: new Date().toISOString()
                     });
                     alert("✅ อนุมัติเรียบร้อย!");
@@ -749,6 +767,7 @@
                     title: "❌ การเสนอพืชของคุณไม่ผ่านการอนุมัติ",
                     message: `การเสนอพืช "${plantName}" ไม่ผ่านการอนุมัติ เนื่องจาก: ${fillReason}`,
                     status: "rejected",
+                    isRead: false,
                     createdAt: new Date().toISOString()
                 }).then(() => {
                     alert("❌ ปฏิเสธการอนุมัติและส่งเหตุผลแจ้งไปยังผู้ใช้เรียบร้อยแล้ว");
@@ -834,7 +853,6 @@
                 card.setAttribute('data-category', plant.category || plant.type);
                 card.onclick = () => openPlant(plant.id);
 
-                // แสดงเครดิตเฉพาะกรณีที่มีข้อมูล createdBy (ผู้ใช้ทั่วไปเสนอมา) เท่านั้น
                 const createdByHtml = plant.createdBy ? `
                     <div style="font-size: 11px; color: #666; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 6px;">
                         🔍 <b>ผู้ค้นพบ:</b> ${plant.createdBy}
