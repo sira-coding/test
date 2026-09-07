@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nature Board - My KU My Nature</title>
+    <title>Nature Library - My KU My Nature</title>
 
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -14,11 +16,14 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: #f5f8f4; color: #263528; padding-bottom: 50px; transition: background 0.3s, color 0.3s; }
+        body { font-family: Arial, sans-serif; background: #f5f8f4; color: #263528; transition: background 0.3s, color 0.3s; }
         body.dark-mode { background: #121813; color: #e0e6e1; }
         body.dark-mode header, body.dark-mode .sidebar { background: #1e2620; border-color: #2e3b30; }
+        body.dark-mode .search, body.dark-mode .category { background: #2a352c; border-color: #3e4e40; color: #ffffff; }
+        body.dark-mode .plant-card { background: #1e2620; }
         body.dark-mode .sidebar a { color: #e0e6e1; }
         body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
+        body.dark-mode .fav-btn, body.dark-mode .delete-btn, body.dark-mode .edit-card-btn { background: rgba(30, 38, 32, 0.9); }
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
@@ -30,8 +35,13 @@
         .header-logo-img { height: 38px; width: auto; object-fit: contain; }
         .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
 
-        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .search { width: 220px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 30px; outline: none; font-size: 14px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
+
+        /* ปุ่มกล่องจดหมาย Inbox */
+        .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; }
+        .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
@@ -45,7 +55,6 @@
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px); }
         .overlay.active { display: block; }
 
-        /* User Profile Box */
         .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
         body.dark-mode .user-profile-box { background: #2a352c; }
         .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
@@ -53,55 +62,59 @@
         body.dark-mode .user-profile-name { color: #81c784; }
         .user-role-badge { font-size: 11px; color: #666; margin-bottom: 10px; }
         body.dark-mode .user-role-badge { color: #aaa; }
+        .profile-btn-group { display: flex; gap: 6px; justify-content: center; }
+        .btn-edit-profile { background: #2e7d32; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
         .btn-logout { background: #d32f2f; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
 
         main { max-width: 1200px; margin: auto; padding: 35px 25px; }
         .heading h1 { font-size: 32px; margin-bottom: 6px; }
         .heading p { color: #718071; font-size: 15px; }
+        .categories { display: flex; gap: 10px; overflow-x: auto; margin: 25px 0; padding-bottom: 5px; }
+        .category { border: none; background: white; padding: 10px 18px; border-radius: 30px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+        .category.active { background: #2e7d32; color: white; }
 
-        /* =========================
-           สไตล์บอร์ดกระดาษโน้ต
-        ========================= */
-        .board-header-action { display: flex; justify-content: space-between; align-items: center; margin: 25px 0; }
-        .btn-create-post { background: #2e7d32; color: white; border: none; padding: 12px 24px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.25); transition: 0.2s; }
-        .btn-create-post:hover { transform: translateY(-2px); background: #236327; }
+        .plant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; }
+        .plant-card { background: white; border-radius: 18px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.06); transition: 0.3s; position: relative; }
+        .plant-card:hover { transform: translateY(-5px); }
+        .plant-image { width: 100%; height: 200px; object-fit: cover; }
+        .plant-info { padding: 16px; }
+        .plant-name { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+        .scientific { font-size: 13px; color: #718071; font-style: italic; }
+        .type { display: inline-block; margin-top: 10px; padding: 4px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; }
 
-        .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; margin-top: 20px; }
-        
-        /* การ์ดกระดาษโน้ตวินเทจ */
-        .paper-note { background: #fffdf0; border-radius: 4px; padding: 20px 18px; box-shadow: 3px 10px 20px rgba(0,0,0,0.12); position: relative; border: 1px solid #f0e6c2; transform: rotate(-1deg); transition: 0.3s; color: #333; }
-        .paper-note:nth-child(even) { transform: rotate(1.5deg); background: #fdfbf7; }
-        .paper-note:hover { transform: scale(1.03) rotate(0deg); z-index: 10; box-shadow: 5px 15px 25px rgba(0,0,0,0.18); }
-        
-        /* สติกเกอร์/เทปแปะมุมกระดาษ */
-        .paper-note::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 70px; height: 20px; background: rgba(220, 210, 180, 0.5); border-left: 2px dashed rgba(255,255,255,0.5); border-right: 2px dashed rgba(255,255,255,0.5); backdrop-filter: blur(2px); }
-        
-        .note-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px dashed #ddd; padding-bottom: 8px; }
-        .note-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
-        .note-user { font-weight: bold; font-size: 13px; color: #2e7d32; }
-        .note-date { font-size: 11px; color: #888; margin-left: auto; }
+        .fav-btn, .delete-btn, .edit-card-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
+        .fav-btn { right: 12px; }
+        .edit-card-btn { right: 54px; color: #f57c00; display: none; }
+        .delete-btn { right: 96px; color: #d32f2f; display: none; }
 
-        /* กรอบโพลารอยด์แปะรูปต้นไม้ */
-        .polaroid-frame { background: white; padding: 8px 8px 12px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #eee; margin-bottom: 12px; text-align: center; }
-        .polaroid-img { width: 100%; height: 160px; object-fit: cover; border-radius: 2px; }
-        .polaroid-title { font-size: 13px; font-weight: bold; color: #444; margin-top: 6px; }
-
-        .note-text { font-size: 14px; line-height: 1.5; color: #2c3e50; word-break: break-word; }
+        #mapSection { display: none; }
+        #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .empty-fav-msg { display: none; text-align: center; grid-column: 1 / -1; padding: 50px 20px; color: #718071; }
 
         /* Modal Popups */
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
-        .admin-modal-content { background: white; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+        .admin-modal-content { background: white; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #2e7d32; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
 
-        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-submit:hover { background: #236327; }
+        /* สไตล์กล่องจดหมาย Inbox รายการรออนุมัติ */
+        .inbox-card-item { background: #f8faf8; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; margin-bottom: 12px; position: relative; }
+        body.dark-mode .inbox-card-item { background: #2a352c; border-color: #3e4e40; }
+        .inbox-user-info { font-size: 12px; color: #2e7d32; font-weight: bold; margin-bottom: 6px; }
+        .inbox-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-approve { background: #2e7d32; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-reject { background: #d32f2f; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
         @media (max-width: 600px) {
+            .search { width: 120px; }
             .heading h1 { font-size: 24px; }
-            .board-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+            .plant-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
         }
     </style>
 </head>
@@ -116,17 +129,31 @@
             <button class="sidebar-close" onclick="closeSidebar()">✕</button>
         </div>
 
-        <!-- กล่องโพรไฟล์เมื่อล็อกอิน -->
         <div class="user-profile-box" id="userProfileBox" style="display: none;">
             <img class="user-avatar" id="userAvatarImg" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
             <div class="user-profile-name" id="userProfileName">👤 User Name</div>
             <div class="user-role-badge" id="userRoleBadge">สมาชิกทั่วไป</div>
-            <button class="btn-logout" onclick="logoutUser()">ออกจากระบบ</button>
+            <div class="profile-btn-group">
+                <button class="btn-logout" onclick="logoutUser()">ออกจากระบบ</button>
+            </div>
         </div>
 
         <ul class="sidebar-menu">
-            <li><a href="./library.html">🌿 คลังธรรมชาติ</a></li>
-            <li><a href="./board.html" class="active">📌 บอร์ดพูดคุยความรู้สึก</a></li>
+            <li id="userAuthMenuItem">
+                <a href="#" onclick="openAuthModal('login')">👤 เข้าสู่ระบบ / สมัครสมาชิก</a>
+            </li>
+
+            <li id="adminAddMenuItem" style="display: none;">
+                <a href="#" onclick="openAddPlantModal()" style="color: #2e7d32; background: #e8f5e9;">➕ เพิ่มการ์ดต้นไม้ใหม่</a>
+            </li>
+
+            <div class="menu-divider"></div>
+
+            <li><a href="#" id="menuLibrary" class="active" onclick="switchView('library')">🌿 คลังธรรมชาติ</a></li>
+            <li><a href="#" id="menuFavorites" onclick="switchView('favorites')">❤️ รายการโปรดของฉัน</a></li>
+            <li><a href="./board.html">📌 บอร์ดพูดคุยความรู้สึก</a></li>
+            <li><a href="./suggest.html">🌱 แนะนำให้รู้จัก</a></li>
+            <li><a href="#" id="menuMap" onclick="switchView('map')">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
         </ul>
     </div>
 
@@ -139,44 +166,79 @@
             </a>
         </div>
         <div class="header-actions">
+            <input type="text" class="search" placeholder="🔍 ค้นหา..." id="searchInput">
+            
+            <!-- ปุ่มกล่องข้อความ Inbox (แสดงข้างๆ ปุ่มสว่าง/มืด) -->
+            <button class="inbox-btn" id="inboxBtn" onclick="openInboxModal()">
+                📬 <span id="inboxBadge" class="inbox-badge" style="display: none;">0</span>
+            </button>
+
             <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()">🌙</button>
         </div>
     </header>
 
     <main>
-        <div class="heading">
-            <h1>Nature Board 📌</h1>
-            <p>แปะการ์ดพืช แชร์ความรู้สึกและความประทับใจที่คุณมีต่อธรรมชาติรอบตัว</p>
-        </div>
+        <section id="librarySection">
+            <div class="heading">
+                <h1 id="pageTitle">Nature Library 📚</h1>
+                <p id="pageDesc">สำรวจธรรมชาติและสิ่งมีชีวิตที่น่าสนใจภายใน KU CSC</p>
+            </div>
 
-        <div class="board-header-action">
-            <button class="btn-create-post" onclick="openCreatePostModal()">✍️ แปะโน้ตแบ่งปันความรู้สึก</button>
-        </div>
+            <div class="categories" id="categoryBar">
+                <button class="category active" data-category="all">🌿 ทั้งหมด</button>
+                <button class="category" data-category="ไม้ยืนต้น">🌳 ไม้ยืนต้น</button>
+                <button class="category" data-category="ไม้ดอก">🌸 ไม้ดอก</button>
+                <button class="category" data-category="เห็ดรา">🍄 เห็ด</button>
+            </div>
 
-        <div class="board-grid" id="boardGrid">
-            <!-- การ์ดโน้ตกระดาษจะถูกซิงค์มาวางที่นี่ -->
-        </div>
+            <div class="plant-grid" id="plantGrid">
+                <div class="empty-fav-msg" id="emptyFavMsg">
+                    <h3>💔 ยังไม่มีรายการโปรด</h3>
+                    <p>กดปุ่มหัวใจ 🤍 บนการ์ดต้นไม้ที่คุณชอบเพื่อบันทึกไว้ได้เลย!</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="mapSection">
+            <div class="heading">
+                <h1>KU Nature Map 🗺️</h1>
+                <p>คลิกที่สติ๊กเกอร์ปักหมุดบนแผนที่เพื่อดูพืชตามจุดต่างๆ ในสถานที่จริง</p>
+            </div>
+            <div id="map"></div>
+        </section>
     </main>
 
-    <!-- Modal แปะโน้ตสร้างโพสต์ความรู้สึก -->
-    <div class="admin-modal" id="createPostModal">
+    <!-- Modal กล่องข้อความ Inbox (แอดมินตรวจอนุมัติ / ผู้ใช้ดูผลพิจารณา) -->
+    <div class="admin-modal" id="inboxModal">
         <div class="admin-modal-content">
             <div class="modal-header">
-                <h2>✍️ แปะโน้ตแบ่งปันความรู้สึก</h2>
-                <button class="sidebar-close" onclick="closeCreatePostModal()">✕</button>
+                <h2 id="inboxModalTitle">📬 กล่องจดหมายเสนอพืชใหม่</h2>
+                <button class="sidebar-close" onclick="closeInboxModal()">✕</button>
             </div>
-            <form id="createPostForm" onsubmit="handleSavePost(event)">
+            <div id="inboxContentList">
+                <p style="text-align: center; color: #777;">⏳ กำลังโหลดรายการจดหมาย...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal เข้าสู่ระบบ / สมัครสมาชิก -->
+    <div class="admin-modal" id="authModal">
+        <div class="admin-modal-content">
+            <div class="modal-header">
+                <h2 id="authModalTitle">👤 เข้าสู่ระบบ</h2>
+                <button class="sidebar-close" onclick="closeAuthModal()">✕</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>เลือกการ์ดต้นไม้/พืชที่ประทับใจ</label>
-                    <select id="postPlantSelect" required>
-                        <option value="">-- กรุณาเลือกต้นไม้ --</option>
-                    </select>
+                    <label>ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="loginUsername" placeholder="กรอกชื่อผู้ใช้" required>
                 </div>
                 <div class="form-group">
-                    <label>เขียนความรู้สึกหรือเรื่องราวของคุณ</label>
-                    <textarea id="postContent" rows="4" placeholder="เล่าความรู้สึก ความทรงจำ หรือเกร็ดความรู้สั้นๆ..." required></textarea>
+                    <label>รหัสผ่าน (Password)</label>
+                    <input type="password" id="loginPassword" placeholder="กรอกรหัสผ่าน" required>
                 </div>
-                <button type="submit" class="btn-submit">📌 แปะลงบนบอร์ดเลย!</button>
+                <button type="submit" class="btn-submit">🔓 เข้าสู่ระบบ</button>
             </form>
         </div>
     </div>
@@ -197,123 +259,356 @@
         const db = firebase.database();
 
         let allPlantsData = [];
+        let map = null;
+        let currentView = 'library';
+        let currentCategory = "all";
         let currentUser = null;
 
-        /* =========================
-           ระบบโหลดการ์ดพืช + ซิงค์บอร์ด Realtime
-        ========================= */
-        function loadPlantsList() {
-            db.ref('plants').once('value', (snapshot) => {
-                const data = snapshot.val();
-                allPlantsData = data ? Object.values(data) : [];
-            });
+        function generateNextPlantId() {
+            const timestamp = Date.now().toString().slice(-6);
+            const randomNum = Math.floor(Math.random() * 90 + 10);
+            return `KU${timestamp}${randomNum}`;
         }
 
-        function syncBoardPosts() {
-            db.ref('posts').on('value', (snapshot) => {
-                const postsData = snapshot.val();
-                const grid = document.getElementById("boardGrid");
-                grid.innerHTML = "";
+        /* =========================
+           ระบบกล่องจดหมาย Inbox & การอนุมัติการ์ด
+        ========================= */
+        function syncInbox() {
+            if (!currentUser) return;
 
-                if (!postsData) {
-                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#777; padding:40px;">📌 ยังไม่มีโน้ตความรู้สึก มาเป็นคนแรกที่เขียนโน้ตแบ่งปันกันเถอะ!</div>`;
-                    return;
-                }
+            if (currentUser.role === 'admin') {
+                // แอดมิน: ดึงรายการพืชรออนุมัติทั้งหมด
+                db.ref('pending_plants').on('value', (snapshot) => {
+                    const pendingData = snapshot.val();
+                    const badge = document.getElementById("inboxBadge");
+                    const count = pendingData ? Object.keys(pendingData).length : 0;
 
-                const posts = Object.values(postsData).reverse();
-                posts.forEach(post => {
-                    const note = document.createElement("div");
-                    note.className = "paper-note";
-                    const dateStr = new Date(post.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                    if (count > 0) {
+                        badge.innerText = count;
+                        badge.style.display = "flex";
+                    } else {
+                        badge.style.display = "none";
+                    }
+                });
+            } else {
+                // ผู้ใช้ทั่วไป: ดึงการแจ้งเตือนตอบกลับของตนเอง
+                db.ref(`user_notifications/${currentUser.username}`).on('value', (snapshot) => {
+                    const notifs = snapshot.val();
+                    const badge = document.getElementById("inboxBadge");
+                    const count = notifs ? Object.keys(notifs).length : 0;
 
-                    note.innerHTML = `
-                        <div class="note-header">
-                            <img class="note-avatar" src="${post.userAvatar}" alt="${post.userName}">
-                            <span class="note-user">${post.userName}</span>
-                            <span class="note-date">${dateStr}</span>
-                        </div>
-                        <div class="polaroid-frame">
-                            <img class="polaroid-img" src="${post.plantImage}" alt="${post.plantName}">
-                            <div class="polaroid-title">${post.plantIcon || ''} ${post.plantName}</div>
-                        </div>
-                        <div class="note-text">${post.content}</div>
-                    `;
-                    grid.appendChild(note);
+                    if (count > 0) {
+                        badge.innerText = count;
+                        badge.style.display = "flex";
+                    } else {
+                        badge.style.display = "none";
+                    }
+                });
+            }
+        }
+
+        function openInboxModal() {
+            if (!currentUser) {
+                alert("🔒 กรุณาเข้าสู่ระบบก่อนเปิดกล่องข้อความครับ");
+                return;
+            }
+
+            const listContainer = document.getElementById("inboxContentList");
+            const modalTitle = document.getElementById("inboxModalTitle");
+            document.getElementById("inboxModal").style.display = "flex";
+
+            if (currentUser.role === 'admin') {
+                modalTitle.innerText = "📬 รายการพืชรออนุมัติ (Admin)";
+                db.ref('pending_plants').once('value', (snapshot) => {
+                    const pending = snapshot.val();
+                    listContainer.innerHTML = "";
+
+                    if (!pending) {
+                        listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:20px;">ไม่มีรายการเสนอพืชรอการอนุมัติ</p>`;
+                        return;
+                    }
+
+                    Object.values(pending).forEach(item => {
+                        const card = document.createElement("div");
+                        card.className = "inbox-card-item";
+                        card.innerHTML = `
+                            <div class="inbox-user-info">👤 ผู้เสนอ: ${item.userName} (${item.userId})</div>
+                            <div><b>${item.icon || '🌿'} ${item.name}</b> (${item.category})</div>
+                            <div style="font-size:12px; color:#666; margin-top:4px;"><b>สถานที่:</b> ${item.location} | <b>ชื่อวิทย์:</b> ${item.scientific}</div>
+                            <div style="font-size:12px; margin-top:4px;">${item.description}</div>
+                            <div class="inbox-actions">
+                                <button class="btn-approve" onclick="approvePlant('${item.id}')">✅ อนุมัติลงคลัง</button>
+                                <button class="btn-reject" onclick="rejectPlant('${item.id}', '${item.userId}', '${item.name}')">❌ ไม่อนุมัติ</button>
+                            </div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                });
+            } else {
+                modalTitle.innerText = "📩 กล่องแจ้งเตือนผลการเสนอพืช";
+                db.ref(`user_notifications/${currentUser.username}`).once('value', (snapshot) => {
+                    const notifs = snapshot.val();
+                    listContainer.innerHTML = "";
+
+                    if (!notifs) {
+                        listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:20px;">ไม่มีข้อความแจ้งเตือน</p>`;
+                        return;
+                    }
+
+                    Object.values(notifs).reverse().forEach(n => {
+                        const card = document.createElement("div");
+                        card.className = "inbox-card-item";
+                        const statusColor = n.status === 'approved' ? '#2e7d32' : '#d32f2f';
+                        card.innerHTML = `
+                            <div style="font-weight:bold; color:${statusColor};">${n.title}</div>
+                            <div style="font-size:13px; margin-top:4px;">${n.message}</div>
+                            <div style="font-size:10px; color:#aaa; margin-top:6px;">${new Date(n.createdAt).toLocaleString('th-TH')}</div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                });
+            }
+        }
+
+        function closeInboxModal() {
+            document.getElementById("inboxModal").style.display = "none";
+        }
+
+        function approvePlant(pendingId) {
+            db.ref(`pending_plants/${pendingId}`).once('value', (snapshot) => {
+                const item = snapshot.val();
+                if (!item) return;
+
+                const newPlantId = generateNextPlantId();
+                const defaultImg = "https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy";
+
+                const newPlantData = {
+                    id: newPlantId,
+                    name: item.name,
+                    scientific: item.scientific,
+                    type: item.category,
+                    category: item.category,
+                    family: item.family,
+                    avgAge: item.avgAge,
+                    location: item.location,
+                    coordinates: "17.2882° N, 104.1123° E",
+                    lat: 17.2882,
+                    lng: 104.1123,
+                    locations: [{ lat: 17.2882, lng: 104.1123 }],
+                    icon: item.icon,
+                    image: defaultImg,
+                    panoramaImage: defaultImg,
+                    description: item.description
+                };
+
+                // บันทึกลงคลังธรรมชาติหลัก และลบออกจาก pending
+                db.ref(`plants/${newPlantId}`).set(newPlantData).then(() => {
+                    db.ref(`pending_plants/${pendingId}`).remove();
+
+                    // แจ้งเตือนกลับไปยังผู้ใช้
+                    db.ref(`user_notifications/${item.userId}`).push().set({
+                        title: "🎉 การเสนอพืชของคุณได้รับการอนุมัติแล้ว!",
+                        message: `พืช "${item.name}" ที่คุณเสนอ ถูกเพิ่มลงในคลังธรรมชาติเรียบร้อยแล้ว`,
+                        status: "approved",
+                        createdAt: new Date().toISOString()
+                    });
+
+                    alert("✅ อนุมัติการ์ดเรียบร้อย! ข้อมูลถูกเพิ่มลงในคลังธรรมชาติแล้ว");
+                    openInboxModal();
                 });
             });
         }
 
-        function openCreatePostModal() {
-            if (!currentUser) {
-                alert("🔒 กรุณาเข้าสู่ระบบที่หน้า คลังธรรมชาติ (library.html) ก่อนลงโน้ตความรู้สึกครับ");
-                return;
-            }
+        function rejectPlant(pendingId, userId, plantName) {
+            const reason = prompt(`กรุณาระบุเหตุผลที่ไม่ผ่านการอนุมัติสำหรับ "${plantName}":`);
+            if (reason === null) return;
 
-            const select = document.getElementById("postPlantSelect");
-            select.innerHTML = `<option value="">-- กรุณาเลือกต้นไม้ --</option>`;
-            allPlantsData.forEach(plant => {
-                select.innerHTML += `<option value="${plant.id}">${plant.icon || '🌿'} ${plant.name}</option>`;
+            db.ref(`pending_plants/${pendingId}`).remove().then(() => {
+                db.ref(`user_notifications/${userId}`).push().set({
+                    title: "❌ การเสนอพืชของคุณไม่ผ่านการอนุมัติ",
+                    message: `พืช "${plantName}" ไม่ผ่านเนื่องจาก: ${reason || 'ข้อมูลไม่สมบูรณ์หรือไม่ถูกต้อง'}`,
+                    status: "rejected",
+                    createdAt: new Date().toISOString()
+                });
+
+                alert("ส่งข้อความแจ้งเหตุผลการไม่อนุมัติเรียบร้อยแล้ว");
+                openInboxModal();
             });
-
-            document.getElementById("createPostModal").style.display = "flex";
         }
 
-        function closeCreatePostModal() {
-            document.getElementById("createPostModal").style.display = "none";
-        }
-
-        function handleSavePost(e) {
+        /* =========================
+           ระบบสมัครสมาชิก / ล็อกอิน
+        ========================= */
+        function handleLogin(e) {
             e.preventDefault();
-            if (!currentUser) return;
+            const username = document.getElementById("loginUsername").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
 
-            const plantId = document.getElementById("postPlantSelect").value;
-            const content = document.getElementById("postContent").value.trim();
-            const plant = allPlantsData.find(p => p.id === plantId);
-
-            if (!plant) {
-                alert("⚠️ ไม่พบข้อมูลการ์ดต้นไม้ที่เลือก");
-                return;
+            if (username === "admin123" && password === "admin09091") {
+                currentUser = { fullName: "แอดมิน (Admin)", username: "admin123", avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin123", role: "admin" };
+            } else {
+                currentUser = { fullName: username, username: username.toLowerCase(), avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`, role: "user" };
             }
 
-            const newPostRef = db.ref('posts').push();
-            newPostRef.set({
-                id: newPostRef.key,
-                userId: currentUser.username,
-                userName: currentUser.fullName,
-                userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
-                plantId: plant.id,
-                plantName: plant.name,
-                plantImage: plant.image,
-                plantIcon: plant.icon || '🌿',
-                content: content,
-                createdAt: new Date().toISOString()
-            }).then(() => {
-                closeCreatePostModal();
-                document.getElementById("createPostForm").reset();
-                alert("🎉 แปะโน้ตความรู้สึกเรียบร้อยแล้ว!");
-            });
+            localStorage.setItem("ku_user", JSON.stringify(currentUser));
+            updateUserUI();
+            closeAuthModal();
+            syncInbox();
+            alert(`👋 ยินดีต้อนรับคุณ ${currentUser.fullName}`);
         }
 
         function checkUserSession() {
             const savedUser = localStorage.getItem("ku_user");
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                const profileBox = document.getElementById("userProfileBox");
-                document.getElementById("userProfileName").innerText = currentUser.fullName;
-                document.getElementById("userAvatarImg").src = currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`;
-                document.getElementById("userRoleBadge").innerText = currentUser.role === 'admin' ? "🔑 ผู้ดูแลระบบ" : "👤 สมาชิกทั่วไป";
+            if (savedUser) currentUser = JSON.parse(savedUser);
+            updateUserUI();
+            syncInbox();
+        }
+
+        function updateUserUI() {
+            const profileBox = document.getElementById("userProfileBox");
+            const adminAddItem = document.getElementById("adminAddMenuItem");
+            const userMenuItem = document.getElementById("userAuthMenuItem");
+
+            if (currentUser) {
                 profileBox.style.display = "block";
+                document.getElementById("userProfileName").innerText = currentUser.fullName;
+                document.getElementById("userAvatarImg").src = currentUser.avatar;
+                userMenuItem.style.display = "none";
+
+                if (currentUser.role === 'admin') {
+                    document.getElementById("userRoleBadge").innerText = "🔑 ผู้ดูแลระบบ";
+                    adminAddItem.style.display = "block";
+                    document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "flex");
+                } else {
+                    document.getElementById("userRoleBadge").innerText = "👤 สมาชิกทั่วไป";
+                    adminAddItem.style.display = "none";
+                    document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "none");
+                }
+            } else {
+                profileBox.style.display = "none";
+                userMenuItem.style.display = "block";
+                adminAddItem.style.display = "none";
             }
         }
 
-        function logoutUser() {
-            currentUser = null;
-            localStorage.removeItem("ku_user");
-            location.reload();
+        function syncRealtimeData() {
+            db.ref('plants').on('value', (snapshot) => {
+                const data = snapshot.val();
+                allPlantsData = data ? Object.values(data) : [];
+                renderPlantCards(allPlantsData);
+                updateFavIcons();
+            });
+        }
+
+        function renderPlantCards(plants) {
+            const grid = document.getElementById("plantGrid");
+            const emptyMsg = document.getElementById("emptyFavMsg");
+            grid.querySelectorAll('.plant-card').forEach(card => card.remove());
+
+            plants.forEach(plant => {
+                const card = document.createElement('div');
+                card.className = 'plant-card';
+                card.setAttribute('data-id', plant.id);
+                card.setAttribute('data-category', plant.category || plant.type);
+                card.onclick = () => openPlant(plant.id);
+
+                card.innerHTML = `
+                    <button class="delete-btn" onclick="deletePlantCard(event, '${plant.id}', '${plant.name}')">🗑️</button>
+                    <button class="edit-card-btn" onclick="editPlantCard(event, '${plant.id}')">✏️</button>
+                    <button class="fav-btn" onclick="toggleFavorite(event, '${plant.id}')">🤍</button>
+                    <img class="plant-image" src="${plant.image}" alt="${plant.name}">
+                    <div class="plant-info">
+                        <div class="plant-name">${plant.name}</div>
+                        <div class="scientific">${plant.scientific}</div>
+                        <span class="type">${plant.type}</span>
+                    </div>
+                `;
+                grid.insertBefore(card, emptyMsg);
+            });
+
+            updateUserUI();
+            filterPlants();
+        }
+
+        function convertGoogleDriveUrl(url) {
+            if (!url) return "";
+            if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);
+            return match ? `https://lh3.googleusercontent.com/d/${match[1] || match[2]}` : url.trim();
+        }
+
+        function getFavorites() { return JSON.parse(localStorage.getItem("ku_favorites") || "[]"); }
+        function toggleFavorite(event, id) {
+            event.stopPropagation();
+            let favs = getFavorites();
+            favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
+            localStorage.setItem("ku_favorites", JSON.stringify(favs));
+            updateFavIcons();
+            if (currentView === 'favorites') filterPlants();
+        }
+
+        function updateFavIcons() {
+            const favs = getFavorites();
+            document.querySelectorAll(".plant-card").forEach(card => {
+                const id = card.getAttribute("data-id");
+                const btn = card.querySelector(".fav-btn");
+                if (btn) btn.innerHTML = favs.includes(id) ? "❤️" : "🤍";
+            });
+        }
+
+        function switchView(viewName) {
+            closeSidebar();
+            currentView = viewName;
+            const librarySec = document.getElementById("librarySection");
+            const mapSec = document.getElementById("mapSection");
+            if (viewName === 'map') {
+                librarySec.style.display = "none";
+                mapSec.style.display = "block";
+                initMap();
+            } else {
+                librarySec.style.display = "block";
+                mapSec.style.display = "none";
+                filterPlants();
+            }
+        }
+
+        function filterPlants() {
+            let searchInput = document.getElementById("searchInput").value.toLowerCase();
+            let cards = document.querySelectorAll(".plant-card");
+            let favs = getFavorites();
+            let visibleCount = 0;
+
+            cards.forEach(function(card) {
+                let id = card.getAttribute("data-id");
+                let text = card.innerText.toLowerCase();
+                let cardCategory = card.getAttribute("data-category");
+
+                let matchesSearch = text.includes(searchInput);
+                let matchesCategory = (currentCategory === "all") || (cardCategory === currentCategory);
+                let matchesFavorite = (currentView !== 'favorites') || favs.includes(id);
+
+                if (matchesSearch && matchesCategory && matchesFavorite) {
+                    card.style.display = "";
+                    visibleCount++;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+            document.getElementById("emptyFavMsg").style.display = (currentView === 'favorites' && visibleCount === 0) ? "block" : "none";
+        }
+
+        function initMap() {
+            if (map !== null) return;
+            map = L.map('map').setView([17.2882, 104.1123], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         }
 
         function openSidebar() { document.getElementById("sidebar").classList.add("open"); document.getElementById("overlay").classList.add("active"); }
         function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("active"); }
+        function openPlant(id) { window.location.href = "./tree.html?id=" + id; }
+        function openAuthModal() { document.getElementById("authModal").style.display = "flex"; }
+        function closeAuthModal() { document.getElementById("authModal").style.display = "none"; }
+        function logoutUser() { currentUser = null; localStorage.removeItem("ku_user"); location.reload(); }
 
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
@@ -330,9 +625,9 @@
             }
         })();
 
+        document.getElementById("searchInput").addEventListener("keyup", filterPlants);
         checkUserSession();
-        loadPlantsList();
-        syncBoardPosts();
+        syncRealtimeData();
     </script>
 </body>
 </html>
