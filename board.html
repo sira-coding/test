@@ -416,7 +416,7 @@
         }
 
         /* =========================
-           ระบบ Inbox & แจ้งเตือน
+           ระบบ Inbox & แจ้งเตือน (นับเฉพาะที่ยังไม่อ่าน + อ่านแล้วลบตัวเลข)
         ========================= */
         function syncInbox() {
             if (!currentUser) return;
@@ -433,9 +433,20 @@
                 db.ref(`user_notifications/${currentUser.username}`).on('value', (snapshot) => {
                     const notifs = snapshot.val();
                     const badge = document.getElementById("inboxBadge");
-                    const count = notifs ? Object.keys(notifs).length : 0;
-                    if (count > 0) { badge.innerText = count; badge.style.display = "flex"; }
-                    else { badge.style.display = "none"; }
+                    
+                    if (!notifs) {
+                        badge.style.display = "none";
+                        return;
+                    }
+
+                    const unreadCount = Object.values(notifs).filter(n => !n.isRead).length;
+
+                    if (unreadCount > 0) { 
+                        badge.innerText = unreadCount; 
+                        badge.style.display = "flex"; 
+                    } else { 
+                        badge.style.display = "none"; 
+                    }
                 });
             }
         }
@@ -487,6 +498,12 @@
                     const notifs = snapshot.val();
                     listContainer.innerHTML = "";
                     if (!notifs) return listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:20px;">ไม่มีข้อความแจ้งเตือน</p>`;
+
+                    const updates = {};
+                    Object.keys(notifs).forEach(key => {
+                        updates[`user_notifications/${currentUser.username}/${key}/isRead`] = true;
+                    });
+                    db.ref().update(updates);
 
                     Object.values(notifs).reverse().forEach(n => {
                         const card = document.createElement("div");
