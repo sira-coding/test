@@ -41,7 +41,6 @@
         .search { width: 220px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 30px; outline: none; font-size: 14px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
 
-        /* ปุ่มกล่องจดหมาย Inbox */
         .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; }
         .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
@@ -105,7 +104,6 @@
         .btn-get-location, .btn-ai-search, .btn-add-coord { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-get-location:hover, .btn-ai-search:hover, .btn-add-coord:hover { background: #2e7d32; color: white; }
 
-        /* รายการพิกัดหลายจุด */
         .coord-list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; max-height: 180px; overflow-y: auto; }
         .coord-item { display: flex; align-items: center; gap: 8px; background: #f8faf8; padding: 6px 10px; border-radius: 8px; border: 1px solid #e0e0e0; }
         .coord-item input { margin-bottom: 0; padding: 6px 10px; font-size: 13px; }
@@ -611,7 +609,7 @@
         }
 
         /* =========================
-           กล่องจดหมาย Inbox & อนุมัติการ์ด
+           กล่องจดหมาย Inbox & อนุมัติ/ปฏิเสธการ์ด
         ========================= */
         function syncInbox() {
             if (!currentUser) return;
@@ -652,11 +650,22 @@
                     Object.values(pending).forEach(item => {
                         const card = document.createElement("div");
                         card.className = "inbox-card-item";
+
+                        const locs = item.locations || [];
+                        const locStr = locs.map((l, i) => `จุดที่ ${i+1}: ${l.lat}, ${l.lng}`).join(" | ");
+
                         card.innerHTML = `
-                            <div class="inbox-user-info">👤 ผู้เสนอ: ${item.userName}</div>
-                            <div><b>${item.icon || '🌿'} ${item.name}</b> (${item.category})</div>
-                            <div style="font-size:12px; color:#666; margin-top:4px;"><b>สถานที่:</b> ${item.location}</div>
-                            <div style="font-size:12px; margin-top:4px;">${item.description}</div>
+                            <div class="inbox-user-info">👤 ผู้เสนอ: ${item.userName} (${item.userId})</div>
+                            <div style="font-size:16px;"><b>${item.icon || '🌿'} ${item.name}</b> (${item.category})</div>
+                            <div style="font-size:12px; color:#555; margin-top:6px; line-height:1.5;">
+                                <b>ชื่อวิทยาศาสตร์:</b> ${item.scientific}<br>
+                                <b>วงศ์ (Family):</b> ${item.family} | <b>อายุเฉลี่ย:</b> ${item.avgAge}<br>
+                                <b>สถานที่พบ:</b> ${item.location}<br>
+                                <b>พิกัดที่ส่งมา:</b> ${locStr || 'ไม่มีข้อมูลพิกัด'}
+                            </div>
+                            <div style="font-size:12px; background:#fff; padding:8px; border-radius:6px; margin-top:8px; border:1px solid #eee;">
+                                <b>รายละเอียดเพิ่มเติม:</b><br>${item.description}
+                            </div>
                             <div class="inbox-actions">
                                 <button class="btn-approve" onclick="approvePlant('${item.id}')">✅ อนุมัติลงคลัง</button>
                                 <button class="btn-reject" onclick="rejectPlant('${item.id}', '${item.userId}', '${item.name}')">❌ ไม่อนุมัติ</button>
@@ -695,6 +704,7 @@
 
                 const newPlantId = generateNextPlantId();
                 const defaultImg = "https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy";
+                const locations = item.locations || [{ lat: 17.2882, lng: 104.1123 }];
 
                 db.ref(`plants/${newPlantId}`).set({
                     id: newPlantId,
@@ -705,10 +715,10 @@
                     family: item.family,
                     avgAge: item.avgAge,
                     location: item.location,
-                    coordinates: "17.2882° N, 104.1123° E",
-                    lat: 17.2882,
-                    lng: 104.1123,
-                    locations: [{ lat: 17.2882, lng: 104.1123 }],
+                    coordinates: `${locations[0].lat}° N, ${locations[0].lng}° E`,
+                    lat: locations[0].lat,
+                    lng: locations[0].lng,
+                    locations: locations,
                     icon: item.icon,
                     image: defaultImg,
                     panoramaImage: defaultImg,
@@ -728,19 +738,22 @@
         }
 
         function rejectPlant(pendingId, userId, plantName) {
-            const reason = prompt(`ระบุเหตุผลที่ไม่ผ่านการอนุมัติสำหรับ "${plantName}":`);
+            const reason = prompt(`กรุณาระบุเหตุผลที่ไม่ผ่านการอนุมัติสำหรับ "${plantName}":`);
             if (reason === null) return;
+
+            const fillReason = reason.trim() || 'ข้อมูลไม่สมบูรณ์หรือไม่ผ่านเกณฑ์การตรวจสอบ';
 
             db.ref(`pending_plants/${pendingId}`).remove().then(() => {
                 db.ref(`user_notifications/${userId}`).push().set({
-                    title: "❌ การเสนอพืชไม่ผ่านการอนุมัติ",
-                    message: `พืช "${plantName}" ไม่ผ่านเนื่องจาก: ${reason || 'ข้อมูลไม่สมบูรณ์'}`,
+                    title: "❌ การเสนอพืชของคุณไม่ผ่านการอนุมัติ",
+                    message: `การเสนอพืช "${plantName}" ไม่ผ่านการอนุมัติ เนื่องจาก: ${fillReason}`,
                     status: "rejected",
                     createdAt: new Date().toISOString()
+                }).then(() => {
+                    alert("❌ ปฏิเสธการอนุมัติและส่งเหตุผลแจ้งไปยังผู้ใช้เรียบร้อยแล้ว");
+                    openInboxModal();
                 });
-                alert("ส่งข้อความแจ้งเหตุผลแล้ว");
-                openInboxModal();
-            });
+            }).catch(err => alert("❌ เกิดข้อผิดพลาด: " + err.message));
         }
 
         /* =========================
@@ -779,7 +792,6 @@
             if (currentUser) {
                 profileBox.style.display = "block";
                 document.getElementById("userProfileName").innerText = currentUser.fullName;
-                // ดึงรูปโปรไฟล์โดยตรง
                 document.getElementById("userAvatarImg").src = currentUser.avatar;
                 userMenuItem.style.display = "none";
 
