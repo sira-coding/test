@@ -42,7 +42,6 @@
         .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
 
-        /* User Profile Box แบบเดียวกับ board.html */
         .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
         body.dark-mode .user-profile-box { background: #2a352c; }
         .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
@@ -97,8 +96,10 @@
 
         <ul class="sidebar-menu">
             <li><a href="./library.html">🌿 คลังธรรมชาติ</a></li>
+            <li><a href="./library.html?view=favorites">❤️ รายการโปรดของฉัน</a></li>
             <li><a href="./board.html">📌 บอร์ดพูดคุยความรู้สึก</a></li>
             <li><a href="./suggest.html" class="active">🌱 แนะนำให้รู้จัก</a></li>
+            <li><a href="./library.html?view=map">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
         </ul>
     </div>
 
@@ -118,7 +119,7 @@
     <main>
         <div class="heading">
             <h1>🌱 แนะนำพืชให้รู้จัก</h1>
-            <p>พบเจอต้นไม้ใหม่ๆ ในมหาวิทยาลัย? เสนอข้อมูลเข้ามาได้เลยโดยไม่จำเป็นต้องกรอกครบทุกช่อง แอดมินจะตรวจสอบและอนุมัติลงคลังธรรมชาติให้ครับ</p>
+            <p>พบเจอต้นไม้ใหม่ๆ ในมหาวิทยาลัย? เสนอข้อมูลเข้ามาได้เลยโดยไม่จำเป็นต้องกรอกครบทุกช่อง แอดมินจะทำการตรวจสอบและอนุมัติลงคลังธรรมชาติให้ครับ</p>
         </div>
 
         <div class="suggest-card">
@@ -198,7 +199,6 @@
                 currentUser = JSON.parse(savedUser);
                 const profileBox = document.getElementById("userProfileBox");
                 document.getElementById("userProfileName").innerText = currentUser.fullName;
-                // ดึงรูป avatar ตรงๆ เช่นเดียวกับหน้า board.html
                 document.getElementById("userAvatarImg").src = currentUser.avatar;
                 document.getElementById("userRoleBadge").innerText = currentUser.role === 'admin' ? "🔑 ผู้ดูแลระบบ" : "👤 สมาชิกทั่วไป";
                 profileBox.style.display = "block";
