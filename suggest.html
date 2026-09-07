@@ -24,6 +24,10 @@
         body.dark-mode input, body.dark-mode textarea, body.dark-mode select { background: #2a352c; border-color: #3e4e40; color: #fff; }
         body.dark-mode .btn-get-location, body.dark-mode .btn-add-coord { background: #2a352c; color: #81c784; border-color: #3e4e40; }
         body.dark-mode .coord-item { background: #2a352c; border-color: #3e4e40; }
+        
+        /* เพิ่มสไตล์ Dark Mode สำหรับ Modal และ Inbox */
+        body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
+        body.dark-mode .inbox-card-item { background: #2a352c; border-color: #3e4e40; color: #e0e6e1; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -41,7 +45,7 @@
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .sidebar-close { background: none; border: none; font-size: 22px; cursor: pointer; }
+        .sidebar-close { background: none; border: none; font-size: 22px; cursor: pointer; color: inherit; }
         .sidebar-menu { list-style: none; }
         .sidebar-menu li { margin-bottom: 10px; }
         .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
@@ -86,8 +90,8 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         
         .inbox-card-item { background: #f8faf8; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; margin-bottom: 12px; position: relative; }
-        body.dark-mode .inbox-card-item { background: #2a352c; border-color: #3e4e40; }
         .inbox-user-info { font-size: 12px; color: #2e7d32; font-weight: bold; margin-bottom: 6px; }
+        body.dark-mode .inbox-user-info { color: #81c784; }
         .inbox-actions { display: flex; gap: 8px; margin-top: 10px; }
         .btn-approve { background: #2e7d32; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-reject { background: #d32f2f; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
