@@ -255,6 +255,7 @@
 
         let currentUser = null;
         let allPlantsData = [];
+        let countdownTimerId = null; // ตัวแปรสำหรับป้องกันเวลานับถอยหลังทับซ้อน
         let monthNames = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
         function checkUserSession() {
@@ -382,6 +383,7 @@
                 grid.innerHTML = "";
 
                 if (!scheduleData) {
+                    if (countdownTimerId) clearInterval(countdownTimerId);
                     grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #777; padding: 40px;">🌾 ยังไม่มีข้อมูลฤดูเก็บเกี่ยวในขณะนี้</p>`;
                     return;
                 }
@@ -417,7 +419,10 @@
         }
 
         function updateAllCountdowns(scheduleData) {
-            setInterval(() => {
+            // เคลียร์รอบเวลานับถอยหลังเก่าทิ้ง ป้องกันเวลารันซ้อนทับกันเมื่อมีการเพิ่ม/ลบ
+            if (countdownTimerId) clearInterval(countdownTimerId);
+
+            const runTimer = () => {
                 const now = new Date();
                 const currentYear = now.getFullYear();
 
@@ -455,7 +460,6 @@
 
                     // 2. เมื่ออยู่ในช่วงเวลาเก็บเกี่ยว (สถานะ: พร้อมเก็บเกี่ยวแล้ว)
                     if (now >= startDate && now <= endDate) {
-                        // 📣 ส่งข้อความแจ้งเตือนเมื่อเปลี่ยนเป็นสถานะพร้อมเก็บเกี่ยวทันที
                         if (!item[`notified_ready_${currentYear}`]) {
                             broadcastNotificationToAllUsers(
                                 `🎉 ${item.plantName} สุกพร้อมเก็บเกี่ยวแล้ว!`,
@@ -494,10 +498,12 @@
                         timerElem.innerText = `${fDays}วัน ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                     }
                 });
-            }, 1000);
+            };
+
+            runTimer();
+            countdownTimerId = setInterval(runTimer, 1000);
         }
 
-        // ฟังก์ชันส่งข้อความแจ้งเตือนหาผู้ใช้ทุกคนในระบบ
         function broadcastNotificationToAllUsers(title, message, status) {
             db.ref('user_notifications').once('value', (snapshot) => {
                 const usersNotifs = snapshot.val();
