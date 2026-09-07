@@ -956,6 +956,15 @@
             }
         })();
 
+        // อ่านค่า Parameter จาก URL เมื่อข้ามมาจากหน้าอื่น
+        function checkUrlViewParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewParam = urlParams.get('view');
+            if (viewParam === 'favorites' || viewParam === 'map') {
+                switchView(viewParam);
+            }
+        }
+
         document.getElementById("searchInput").addEventListener("keyup", filterPlants);
         document.querySelectorAll(".category").forEach(button => {
             button.addEventListener("click", function() {
@@ -967,6 +976,7 @@
         });
 
         checkUserSession();
+        checkUrlViewParam();
         syncRealtimeData();
     </script>
 </body>
