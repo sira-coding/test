@@ -30,8 +30,11 @@
         .header-logo-img { height: 38px; width: auto; object-fit: contain; }
         .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
 
-        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
+
+        .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; }
+        .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
@@ -104,6 +107,16 @@
         .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-submit:hover { background: #236327; }
 
+        .inbox-card-item { background: #f8faf8; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; margin-bottom: 12px; position: relative; }
+        body.dark-mode .inbox-card-item { background: #2a352c; border-color: #3e4e40; }
+        .inbox-user-info { font-size: 12px; color: #2e7d32; font-weight: bold; margin-bottom: 6px; }
+        .inbox-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-approve { background: #2e7d32; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-reject { background: #d32f2f; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
+        .overlay.active { display: block; }
+
         @media (max-width: 600px) {
             .heading h1 { font-size: 24px; }
             .board-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
@@ -146,6 +159,9 @@
             </a>
         </div>
         <div class="header-actions">
+            <button class="inbox-btn" id="inboxBtn" onclick="openInboxModal()">
+                📬 <span id="inboxBadge" class="inbox-badge" style="display: none;">0</span>
+            </button>
             <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()">🌙</button>
         </div>
     </header>
@@ -187,6 +203,19 @@
                 </div>
                 <button type="submit" class="btn-submit">📌 แปะลงบนบอร์ดเลย!</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal กล่องข้อความ Inbox -->
+    <div class="admin-modal" id="inboxModal">
+        <div class="admin-modal-content">
+            <div class="modal-header">
+                <h2 id="inboxModalTitle">📬 กล่องจดหมายเสนอพืชใหม่</h2>
+                <button class="sidebar-close" onclick="closeInboxModal()">✕</button>
+            </div>
+            <div id="inboxContentList">
+                <p style="text-align: center; color: #777;">⏳ กำลังโหลดรายการจดหมาย...</p>
+            </div>
         </div>
     </div>
 
@@ -386,6 +415,95 @@
             });
         }
 
+        /* =========================
+           ระบบ Inbox & แจ้งเตือน
+        ========================= */
+        function syncInbox() {
+            if (!currentUser) return;
+
+            if (currentUser.role === 'admin') {
+                db.ref('pending_plants').on('value', (snapshot) => {
+                    const pendingData = snapshot.val();
+                    const badge = document.getElementById("inboxBadge");
+                    const count = pendingData ? Object.keys(pendingData).length : 0;
+                    if (count > 0) { badge.innerText = count; badge.style.display = "flex"; }
+                    else { badge.style.display = "none"; }
+                });
+            } else {
+                db.ref(`user_notifications/${currentUser.username}`).on('value', (snapshot) => {
+                    const notifs = snapshot.val();
+                    const badge = document.getElementById("inboxBadge");
+                    const count = notifs ? Object.keys(notifs).length : 0;
+                    if (count > 0) { badge.innerText = count; badge.style.display = "flex"; }
+                    else { badge.style.display = "none"; }
+                });
+            }
+        }
+
+        function openInboxModal() {
+            if (!currentUser) return alert("🔒 กรุณาเข้าสู่ระบบก่อนครับ");
+
+            const listContainer = document.getElementById("inboxContentList");
+            const modalTitle = document.getElementById("inboxModalTitle");
+            document.getElementById("inboxModal").style.display = "flex";
+
+            if (currentUser.role === 'admin') {
+                modalTitle.innerText = "📬 รายการพืชรออนุมัติ (Admin)";
+                db.ref('pending_plants').once('value', (snapshot) => {
+                    const pending = snapshot.val();
+                    listContainer.innerHTML = "";
+                    if (!pending) return listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:20px;">ไม่มีรายการเสนอพืชรอการอนุมัติ</p>`;
+
+                    Object.values(pending).forEach(item => {
+                        const card = document.createElement("div");
+                        card.className = "inbox-card-item";
+
+                        const locs = item.locations || [];
+                        const locStr = locs.map((l, i) => `จุดที่ ${i+1}: ${l.lat}, ${l.lng}`).join(" | ");
+
+                        card.innerHTML = `
+                            <div class="inbox-user-info">👤 ผู้เสนอ: ${item.userName} (${item.userId})</div>
+                            <div style="font-size:16px;"><b>${item.icon || '🌿'} ${item.name}</b> (${item.category})</div>
+                            <div style="font-size:12px; color:#555; margin-top:6px; line-height:1.5;">
+                                <b>ชื่อวิทยาศาสตร์:</b> ${item.scientific}<br>
+                                <b>วงศ์ (Family):</b> ${item.family} | <b>อายุเฉลี่ย:</b> ${item.avgAge}<br>
+                                <b>สถานที่พบ:</b> ${item.location}<br>
+                                <b>พิกัดที่ส่งมา:</b> ${locStr || 'ไม่มีข้อมูลพิกัด'}
+                            </div>
+                            <div style="font-size:12px; background:#fff; padding:8px; border-radius:6px; margin-top:8px; border:1px solid #eee;">
+                                <b>รายละเอียดเพิ่มเติม:</b><br>${item.description}
+                            </div>
+                            <div class="inbox-actions">
+                                <button class="btn-approve" onclick="approvePlant('${item.id}')">✅ อนุมัติลงคลัง</button>
+                                <button class="btn-reject" onclick="rejectPlant('${item.id}', '${item.userId}', '${item.name}')">❌ ไม่อนุมัติ</button>
+                            </div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                });
+            } else {
+                modalTitle.innerText = "📩 กล่องแจ้งเตือนผลเสนอพืช";
+                db.ref(`user_notifications/${currentUser.username}`).once('value', (snapshot) => {
+                    const notifs = snapshot.val();
+                    listContainer.innerHTML = "";
+                    if (!notifs) return listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:20px;">ไม่มีข้อความแจ้งเตือน</p>`;
+
+                    Object.values(notifs).reverse().forEach(n => {
+                        const card = document.createElement("div");
+                        card.className = "inbox-card-item";
+                        const statusColor = n.status === 'approved' ? '#2e7d32' : '#d32f2f';
+                        card.innerHTML = `
+                            <div style="font-weight:bold; color:${statusColor};">${n.title}</div>
+                            <div style="font-size:13px; margin-top:4px;">${n.message}</div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                });
+            }
+        }
+
+        function closeInboxModal() { document.getElementById("inboxModal").style.display = "none"; }
+
         function checkUserSession() {
             const savedUser = localStorage.getItem("ku_user");
             if (savedUser) {
@@ -396,6 +514,7 @@
                 document.getElementById("userRoleBadge").innerText = currentUser.role === 'admin' ? "🔑 ผู้ดูแลระบบ" : "👤 สมาชิกทั่วไป";
                 profileBox.style.display = "block";
             }
+            syncInbox();
         }
 
         function logoutUser() {
