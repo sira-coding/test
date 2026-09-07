@@ -23,7 +23,7 @@
         body.dark-mode .plant-card { background: #1e2620; }
         body.dark-mode .sidebar a { color: #e0e6e1; }
         body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
-        body.dark-mode .fav-btn, body.dark-mode .delete-btn { background: rgba(30, 38, 32, 0.9); }
+        body.dark-mode .fav-btn, body.dark-mode .delete-btn, body.dark-mode .edit-card-btn { background: rgba(30, 38, 32, 0.9); }
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
@@ -80,9 +80,11 @@
         .scientific { font-size: 13px; color: #718071; font-style: italic; }
         .type { display: inline-block; margin-top: 10px; padding: 4px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; }
 
-        .fav-btn, .delete-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
+        /* ปุ่มบนการ์ด (Fav / Delete / Edit) */
+        .fav-btn, .delete-btn, .edit-card-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
         .fav-btn { right: 12px; }
-        .delete-btn { right: 54px; color: #d32f2f; display: none; }
+        .edit-card-btn { right: 54px; color: #f57c00; display: none; }
+        .delete-btn { right: 96px; color: #d32f2f; display: none; }
 
         #mapSection { display: none; }
         #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
@@ -282,17 +284,17 @@
         </div>
     </div>
 
-    <!-- Modal เพิ่มพืชใหม่ (มีปุ่ม AI และปุ่มพิกัด) -->
+    <!-- Modal เพิ่ม/แก้ไขพืช (Admin) -->
     <div class="admin-modal" id="addPlantModal">
         <div class="admin-modal-content">
             <div class="modal-header">
-                <h2>➕ เพิ่มพืช/ต้นไม้ใหม่</h2>
+                <h2 id="plantModalTitle">➕ เพิ่มพืช/ต้นไม้ใหม่</h2>
                 <button class="sidebar-close" onclick="closeAddPlantModal()">✕</button>
             </div>
-            <form id="addPlantForm" onsubmit="saveNewPlant(event)">
+            <form id="addPlantForm" onsubmit="savePlantCard(event)">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>รหัสพืช (Auto ID)</label>
+                        <label>รหัสพืช (ID)</label>
                         <input type="text" id="plantId" readonly style="background: #eee; font-weight: bold;">
                     </div>
                     <div class="form-group">
@@ -367,7 +369,7 @@
                     <label>คำอธิบายรายละเอียด</label>
                     <textarea id="plantDescription" rows="3" placeholder="รายละเอียดลักษณะพืช..." required></textarea>
                 </div>
-                <button type="submit" class="btn-submit">💾 บันทึกสร้างการ์ดพืชใหม่</button>
+                <button type="submit" class="btn-submit" id="btnSubmitPlant">💾 บันทึกการ์ดพืช</button>
             </form>
         </div>
     </div>
@@ -392,6 +394,7 @@
         let currentView = 'library';
         let currentCategory = "all";
         let currentUser = null;
+        let isEditMode = false;
 
         /* =========================
            ฟังก์ชันปุ่ม AI & พิกัดปัจจุบัน
@@ -479,6 +482,103 @@
             } catch (err) {
                 btn.innerText = "🤖 ดึงข้อมูลด้วย AI";
                 alert("⚠️ กรอกรายละเอียดในช่องด้วยตนเองได้เลยครับ");
+            }
+        }
+
+        /* =========================
+           ระบบจัดการพืช (เพิ่ม / แก้ไข / ลบ)
+        ========================= */
+        function generateNextPlantId() {
+            let maxNum = 0;
+            allPlantsData.forEach(plant => {
+                const match = plant.id.match(/KU(\d+)/i);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    if (num > maxNum) maxNum = num;
+                }
+            });
+            return `KU${String(maxNum + 1).padStart(3, '0')}`;
+        }
+
+        function openAddPlantModal() {
+            closeSidebar();
+            isEditMode = false;
+            document.getElementById("addPlantForm").reset();
+            document.getElementById("plantModalTitle").innerText = "➕ เพิ่มพืช/ต้นไม้ใหม่";
+            document.getElementById("btnSubmitPlant").innerText = "💾 บันทึกสร้างการ์ดพืชใหม่";
+            document.getElementById("plantId").value = generateNextPlantId();
+            document.getElementById("addPlantModal").style.display = "flex";
+        }
+
+        function editPlantCard(event, plantId) {
+            event.stopPropagation();
+            const plant = allPlantsData.find(p => p.id === plantId);
+            if (!plant) return;
+
+            isEditMode = true;
+            document.getElementById("plantModalTitle").innerText = `✏️ แก้ไขการ์ด ${plant.id}`;
+            document.getElementById("btnSubmitPlant").innerText = "💾 บันทึกการแก้ไข";
+
+            document.getElementById("plantId").value = plant.id;
+            document.getElementById("plantIcon").value = plant.icon || '🌿';
+            document.getElementById("plantName").value = plant.name || '';
+            document.getElementById("plantScientific").value = plant.scientific || '';
+            document.getElementById("plantCategory").value = plant.category || plant.type || 'ไม้ยืนต้น';
+            document.getElementById("plantFamily").value = plant.family || '';
+            document.getElementById("plantAvgAge").value = plant.avgAge || '';
+            document.getElementById("plantLocation").value = plant.location || '';
+            document.getElementById("plantLat").value = plant.lat || '';
+            document.getElementById("plantLng").value = plant.lng || '';
+            document.getElementById("plantImage").value = plant.image || '';
+            document.getElementById("plantPanorama").value = plant.panoramaImage || '';
+            document.getElementById("plantDescription").value = plant.description || '';
+
+            document.getElementById("addPlantModal").style.display = "flex";
+        }
+
+        function closeAddPlantModal() {
+            document.getElementById("addPlantModal").style.display = "none";
+        }
+
+        function savePlantCard(event) {
+            event.preventDefault();
+            const lat = parseFloat(document.getElementById("plantLat").value);
+            const lng = parseFloat(document.getElementById("plantLng").value);
+            const plantId = document.getElementById("plantId").value;
+
+            const plantData = {
+                id: plantId,
+                name: document.getElementById("plantName").value,
+                scientific: document.getElementById("plantScientific").value,
+                type: document.getElementById("plantCategory").value,
+                category: document.getElementById("plantCategory").value,
+                family: document.getElementById("plantFamily").value,
+                avgAge: document.getElementById("plantAvgAge").value,
+                location: document.getElementById("plantLocation").value,
+                coordinates: `${lat}° N, ${lng}° E`,
+                lat: lat,
+                lng: lng,
+                icon: document.getElementById("plantIcon").value,
+                image: convertGoogleDriveUrl(document.getElementById("plantImage").value),
+                panoramaImage: convertGoogleDriveUrl(document.getElementById("plantPanorama").value),
+                description: document.getElementById("plantDescription").value
+            };
+
+            db.ref('plants/' + plantId).set(plantData)
+                .then(() => {
+                    closeAddPlantModal();
+                    document.getElementById("addPlantForm").reset();
+                    alert(isEditMode ? `✅ แก้ไขข้อมูลการ์ด ${plantId} สำเร็จ!` : `🎉 สร้างการ์ดพืช ${plantId} สำเร็จแล้ว!`);
+                })
+                .catch((err) => alert("❌ บันทึกไม่สำเร็จ: " + err.message));
+        }
+
+        function deletePlantCard(event, plantId, plantName) {
+            event.stopPropagation();
+            if (confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการ์ด "${plantId} - ${plantName}"?`)) {
+                db.ref('plants/' + plantId).remove()
+                    .then(() => alert(`🗑️ ลบการ์ด ${plantId} สำเร็จแล้ว`))
+                    .catch((err) => alert("❌ ลบไม่สำเร็จ: " + err.message));
             }
         }
 
@@ -655,18 +755,18 @@
                     roleBadge.innerText = "🔑 ผู้ดูแลระบบ (Admin)";
                     adminAddItem.style.display = "block";
                     btnEditProfile.style.display = "none";
-                    document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "flex");
+                    document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "flex");
                 } else {
                     roleBadge.innerText = "👤 สมาชิกทั่วไป";
                     adminAddItem.style.display = "none";
                     btnEditProfile.style.display = "inline-block";
-                    document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "none");
+                    document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "none");
                 }
             } else {
                 profileBox.style.display = "none";
                 userMenuItem.style.display = "block";
                 adminAddItem.style.display = "none";
-                document.querySelectorAll(".delete-btn").forEach(btn => btn.style.display = "none");
+                document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "none");
             }
         }
 
@@ -696,6 +796,7 @@
 
                 card.innerHTML = `
                     <button class="delete-btn" title="ลบการ์ดนี้" onclick="deletePlantCard(event, '${plant.id}', '${plant.name}')">🗑️</button>
+                    <button class="edit-card-btn" title="แก้ไขการ์ดนี้" onclick="editPlantCard(event, '${plant.id}')">✏️</button>
                     <button class="fav-btn" onclick="toggleFavorite(event, '${plant.id}')">🤍</button>
                     <img class="plant-image" src="${plant.image}" alt="${plant.name}">
                     <div class="plant-info">
@@ -717,70 +818,6 @@
             const regExp = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
             const match = url.match(regExp);
             return match ? `https://lh3.googleusercontent.com/d/${match[1] || match[2]}` : url.trim();
-        }
-
-        function deletePlantCard(event, plantId, plantName) {
-            event.stopPropagation();
-            if (confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการ์ด "${plantId} - ${plantName}"?`)) {
-                db.ref('plants/' + plantId).remove()
-                    .then(() => alert(`🗑️ ลบการ์ด ${plantId} สำเร็จแล้ว`))
-                    .catch((err) => alert("❌ ลบไม่สำเร็จ: " + err.message));
-            }
-        }
-
-        function generateNextPlantId() {
-            let maxNum = 0;
-            allPlantsData.forEach(plant => {
-                const match = plant.id.match(/KU(\d+)/i);
-                if (match) {
-                    const num = parseInt(match[1]);
-                    if (num > maxNum) maxNum = num;
-                }
-            });
-            return `KU${String(maxNum + 1).padStart(3, '0')}`;
-        }
-
-        function openAddPlantModal() {
-            closeSidebar();
-            document.getElementById("plantId").value = generateNextPlantId();
-            document.getElementById("addPlantModal").style.display = "flex";
-        }
-
-        function closeAddPlantModal() {
-            document.getElementById("addPlantModal").style.display = "none";
-        }
-
-        function saveNewPlant(event) {
-            event.preventDefault();
-            const lat = parseFloat(document.getElementById("plantLat").value);
-            const lng = parseFloat(document.getElementById("plantLng").value);
-            const plantId = document.getElementById("plantId").value;
-
-            const newPlant = {
-                id: plantId,
-                name: document.getElementById("plantName").value,
-                scientific: document.getElementById("plantScientific").value,
-                type: document.getElementById("plantCategory").value,
-                category: document.getElementById("plantCategory").value,
-                family: document.getElementById("plantFamily").value,
-                avgAge: document.getElementById("plantAvgAge").value,
-                location: document.getElementById("plantLocation").value,
-                coordinates: `${lat}° N, ${lng}° E`,
-                lat: lat,
-                lng: lng,
-                icon: document.getElementById("plantIcon").value,
-                image: convertGoogleDriveUrl(document.getElementById("plantImage").value),
-                panoramaImage: convertGoogleDriveUrl(document.getElementById("plantPanorama").value),
-                description: document.getElementById("plantDescription").value
-            };
-
-            db.ref('plants/' + plantId).set(newPlant)
-                .then(() => {
-                    closeAddPlantModal();
-                    document.getElementById("addPlantForm").reset();
-                    alert(`สร้างการ์ดพืช ${plantId} สำเร็จแล้ว!`);
-                })
-                .catch((err) => alert("❌ บันทึกไม่สำเร็จ: " + err.message));
         }
 
         function getFavorites() {
