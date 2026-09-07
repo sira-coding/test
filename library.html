@@ -27,7 +27,8 @@
         body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
-        body.dark-mode .btn-get-location, body.dark-mode .btn-ai-search { background: #2a352c; color: #81c784; border-color: #3e4e40; }
+        body.dark-mode .btn-get-location, body.dark-mode .btn-ai-search, body.dark-mode .btn-add-coord { background: #2a352c; color: #81c784; border-color: #3e4e40; }
+        body.dark-mode .coord-item { background: #2a352c; border-color: #3e4e40; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -80,7 +81,6 @@
         .scientific { font-size: 13px; color: #718071; font-style: italic; }
         .type { display: inline-block; margin-top: 10px; padding: 4px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; }
 
-        /* ปุ่มบนการ์ด (Fav / Delete / Edit) */
         .fav-btn, .delete-btn, .edit-card-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
         .fav-btn { right: 12px; }
         .edit-card-btn { right: 54px; color: #f57c00; display: none; }
@@ -90,7 +90,6 @@
         #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
         .empty-fav-msg { display: none; text-align: center; grid-column: 1 / -1; padding: 50px 20px; color: #718071; }
 
-        /* Modal Popups & Buttons */
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
         .admin-modal-content { background: white; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -101,11 +100,21 @@
         .form-row .form-group { flex: 1; }
 
         .field-header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .btn-get-location, .btn-ai-search { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-get-location:hover, .btn-ai-search:hover { background: #2e7d32; color: white; }
+        .btn-get-location, .btn-ai-search, .btn-add-coord { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-get-location:hover, .btn-ai-search:hover, .btn-add-coord:hover { background: #2e7d32; color: white; }
 
-        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        /* สไตล์รายการพิกัดหลายจุด */
+        .coord-list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; max-height: 180px; overflow-y: auto; }
+        .coord-item { display: flex; align-items: center; gap: 8px; background: #f8faf8; padding: 6px 10px; border-radius: 8px; border: 1px solid #e0e0e0; }
+        .coord-item input { margin-bottom: 0; padding: 6px 10px; font-size: 13px; }
+        .btn-remove-coord { background: #ffebee; color: #d32f2f; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; flex-shrink: 0; }
+
+        .modal-actions-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-submit { flex: 1; background: #2e7d32; color: white; border: none; padding: 12px 16px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; }
         .btn-submit:hover { background: #236327; }
+        .btn-draft-submit { background: #f57c00; }
+        .btn-draft-submit:hover { background: #e65100; }
+
         .auth-switch-text { text-align: center; font-size: 13px; margin-top: 15px; color: #666; }
         .auth-switch-text span { color: #2e7d32; cursor: pointer; font-weight: bold; text-decoration: underline; }
 
@@ -120,6 +129,7 @@
             .plant-image { height: 140px; }
             #map { height: 420px; }
             .form-row { flex-direction: column; gap: 0; }
+            .modal-actions-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -291,7 +301,7 @@
                 <h2 id="plantModalTitle">➕ เพิ่มพืช/ต้นไม้ใหม่</h2>
                 <button class="sidebar-close" onclick="closeAddPlantModal()">✕</button>
             </div>
-            <form id="addPlantForm" onsubmit="savePlantCard(event)">
+            <form id="addPlantForm" onsubmit="savePlantCard(event, false)">
                 <div class="form-row">
                     <div class="form-group">
                         <label>รหัสพืช (Auto ID)</label>
@@ -299,7 +309,7 @@
                     </div>
                     <div class="form-group">
                         <label>ไอคอนสัญลักษณ์</label>
-                        <input type="text" id="plantIcon" placeholder="เช่น 🌳, 🌸, 🍄" required>
+                        <input type="text" id="plantIcon" placeholder="เช่น 🌳, 🌸, 🍄">
                     </div>
                 </div>
 
@@ -308,18 +318,18 @@
                         <label style="margin-bottom:0;">ชื่อต้นไม้/พืช</label>
                         <button type="button" class="btn-ai-search" onclick="autoFillPlantDataWithAI()">🤖 ดึงข้อมูลด้วย AI</button>
                     </div>
-                    <input type="text" id="plantName" placeholder="เช่น ดอกกุหลาบ, นนทรี" style="margin-top:5px;" required>
+                    <input type="text" id="plantName" placeholder="เช่น ดอกกุหลาบ, นนทรี" style="margin-top:5px;">
                 </div>
 
                 <div class="form-group">
                     <label>ชื่อวิทยาศาสตร์</label>
-                    <input type="text" id="plantScientific" placeholder="เช่น Peltophorum pterocarpum" required>
+                    <input type="text" id="plantScientific" placeholder="เช่น Peltophorum pterocarpum">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>ประเภท/หมวดหมู่</label>
-                        <select id="plantCategory" required>
+                        <select id="plantCategory">
                             <option value="ไม้ยืนต้น">ไม้ยืนต้น</option>
                             <option value="ไม้ดอก">ไม้ดอก</option>
                             <option value="เห็ดรา">เห็ดรา</option>
@@ -327,49 +337,52 @@
                     </div>
                     <div class="form-group">
                         <label>วงศ์ (Family)</label>
-                        <input type="text" id="plantFamily" placeholder="เช่น Fabaceae" required>
+                        <input type="text" id="plantFamily" placeholder="เช่น Fabaceae">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>อายุเฉลี่ย</label>
-                        <input type="text" id="plantAvgAge" placeholder="เช่น 30 - 50 ปี" required>
+                        <input type="text" id="plantAvgAge" placeholder="เช่น 30 - 50 ปี">
                     </div>
                     <div class="form-group">
                         <label>สถานที่พบ</label>
-                        <input type="text" id="plantLocation" placeholder="เช่น หน้าอาคารสารสนเทศ" required>
+                        <input type="text" id="plantLocation" placeholder="เช่น หน้าอาคารสารสนเทศ">
                     </div>
                 </div>
 
+                <!-- ระบบพิกัดหลายจุด (Multi-Location) -->
                 <div class="form-group">
                     <div class="field-header-box">
-                        <label style="margin-bottom:0;">พิกัดตำแหน่ง (Lat / Lng)</label>
-                        <button type="button" class="btn-get-location" onclick="getCurrentLocation()">📍 พิกัดปัจจุบัน</button>
+                        <label style="margin-bottom:0;">รายการพิกัดตำแหน่ง (Lat / Lng)</label>
+                        <div>
+                            <button type="button" class="btn-get-location" onclick="getCurrentLocation()">📍 ดึงพิกัดปัจจุบันเพิ่ม</button>
+                            <button type="button" class="btn-add-coord" onclick="addCoordRow()">➕ เพิ่มพิกัด</button>
+                        </div>
                     </div>
-                    <div class="form-row" style="margin-top: 5px;">
-                        <div class="form-group">
-                            <input type="number" step="any" id="plantLat" placeholder="Lat (เช่น 17.2882)" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="number" step="any" id="plantLng" placeholder="Lng (เช่น 104.1123)" required>
-                        </div>
+                    <div class="coord-list-container" id="coordListContainer">
+                        <!-- ช่องป้อนพิกัดจะถูกเพิ่มมาที่นี่ -->
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>ลิงก์รูปภาพหน้าปก</label>
-                    <input type="text" id="plantImage" placeholder="https://drive.google.com/file/d/..." required>
+                    <input type="text" id="plantImage" placeholder="https://drive.google.com/file/d/...">
                 </div>
                 <div class="form-group">
                     <label>ลิงก์รูปภาพ Panorama / 180°</label>
-                    <input type="text" id="plantPanorama" placeholder="https://drive.google.com/file/d/..." required>
+                    <input type="text" id="plantPanorama" placeholder="https://drive.google.com/file/d/...">
                 </div>
                 <div class="form-group">
                     <label>คำอธิบายรายละเอียด</label>
-                    <textarea id="plantDescription" rows="3" placeholder="รายละเอียดลักษณะพืช..." required></textarea>
+                    <textarea id="plantDescription" rows="3" placeholder="รายละเอียดลักษณะพืช..."></textarea>
                 </div>
-                <button type="submit" class="btn-submit" id="btnSubmitPlant">💾 บันทึกการ์ดพืช</button>
+
+                <div class="modal-actions-row">
+                    <button type="button" class="btn-submit btn-draft-submit" onclick="savePlantCard(event, true)">⚡ บันทึกได้เลย (ไม่บังคับครบ)</button>
+                    <button type="submit" class="btn-submit" id="btnSubmitPlant">💾 บันทึกการ์ดพืชใหม่</button>
+                </div>
             </form>
         </div>
     </div>
@@ -396,9 +409,6 @@
         let currentUser = null;
         let isEditMode = false;
 
-        /* =========================
-           วิธีที่ 1: สร้าง Unique ID แบบ Timestamp + สุ่มตัวเลข 2 หลัก
-        ========================= */
         function generateNextPlantId() {
             const timestamp = Date.now().toString().slice(-6);
             const randomNum = Math.floor(Math.random() * 90 + 10);
@@ -406,29 +416,61 @@
         }
 
         /* =========================
-           ฟังก์ชันปุ่ม AI & พิกัดปัจจุบัน
+           ระบบจัดการพิกัดหลายตำแหน่ง (Multi Coordinates)
         ========================= */
+        function addCoordRow(lat = '', lng = '') {
+            const container = document.getElementById("coordListContainer");
+            const item = document.createElement("div");
+            item.className = "coord-item";
+            item.innerHTML = `
+                <input type="number" step="any" class="coord-lat" placeholder="Lat (เช่น 17.2882)" value="${lat}">
+                <input type="number" step="any" class="coord-lng" placeholder="Lng (เช่น 104.1123)" value="${lng}">
+                <button type="button" class="btn-remove-coord" onclick="this.parentElement.remove()" title="ลบพิกัดนี้">✕</button>
+            `;
+            container.appendChild(item);
+        }
+
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 const btn = document.querySelector('.btn-get-location');
-                btn.innerText = "⏳ กำลังดึงพิกัด...";
+                btn.innerText = "⏳ กำลังดึง...";
                 
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        document.getElementById("plantLat").value = position.coords.latitude.toFixed(6);
-                        document.getElementById("plantLng").value = position.coords.longitude.toFixed(6);
-                        btn.innerText = "✅ ได้พิกัดแล้ว";
-                        setTimeout(() => { btn.innerText = "📍 พิกัดปัจจุบัน"; }, 2000);
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lng = position.coords.longitude.toFixed(6);
+                        addCoordRow(lat, lng);
+                        btn.innerText = "✅ เพิ่มพิกัดเรียบร้อย";
+                        setTimeout(() => { btn.innerText = "📍 ดึงพิกัดปัจจุบันเพิ่ม"; }, 2000);
                     },
                     (error) => {
                         alert("⚠️ ไม่สามารถดึงตำแหน่งได้ กรุณาเปิดสิทธิ์ GPS บนอุปกรณ์ของคุณ");
-                        btn.innerText = "📍 พิกัดปัจจุบัน";
+                        btn.innerText = "📍 ดึงพิกัดปัจจุบันเพิ่ม";
                     },
                     { enableHighAccuracy: true }
                 );
             } else {
                 alert("⚠️ อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับระบบดึงพิกัดตำแหน่ง");
             }
+        }
+
+        function getLocationsFromForm() {
+            const latInputs = document.querySelectorAll(".coord-lat");
+            const lngInputs = document.querySelectorAll(".coord-lng");
+            const locations = [];
+
+            for (let i = 0; i < latInputs.length; i++) {
+                const lat = parseFloat(latInputs[i].value);
+                const lng = parseFloat(lngInputs[i].value);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    locations.push({ lat: lat, lng: lng });
+                }
+            }
+
+            if (locations.length === 0) {
+                locations.push({ lat: 17.2882, lng: 104.1123 });
+            }
+            return locations;
         }
 
         async function autoFillPlantDataWithAI() {
@@ -494,13 +536,13 @@
             }
         }
 
-        /* =========================
-           ระบบจัดการพืช (เพิ่ม / แก้ไข / ลบ)
-        ========================= */
         function openAddPlantModal() {
             closeSidebar();
             isEditMode = false;
             document.getElementById("addPlantForm").reset();
+            document.getElementById("coordListContainer").innerHTML = "";
+            addCoordRow(); // เพิ่มแถบใส่พิกัดเริ่มต้น 1 แถว
+
             document.getElementById("plantModalTitle").innerText = "➕ เพิ่มพืช/ต้นไม้ใหม่";
             document.getElementById("btnSubmitPlant").innerText = "💾 บันทึกสร้างการ์ดพืชใหม่";
             document.getElementById("plantId").value = generateNextPlantId();
@@ -524,11 +566,15 @@
             document.getElementById("plantFamily").value = plant.family || '';
             document.getElementById("plantAvgAge").value = plant.avgAge || '';
             document.getElementById("plantLocation").value = plant.location || '';
-            document.getElementById("plantLat").value = plant.lat || '';
-            document.getElementById("plantLng").value = plant.lng || '';
             document.getElementById("plantImage").value = plant.image || '';
             document.getElementById("plantPanorama").value = plant.panoramaImage || '';
             document.getElementById("plantDescription").value = plant.description || '';
+
+            // โหลดพิกัดเดิมลงฟอร์ม
+            const container = document.getElementById("coordListContainer");
+            container.innerHTML = "";
+            const locations = plant.locations || [{ lat: plant.lat || 17.2882, lng: plant.lng || 104.1123 }];
+            locations.forEach(loc => addCoordRow(loc.lat, loc.lng));
 
             document.getElementById("addPlantModal").style.display = "flex";
         }
@@ -537,35 +583,46 @@
             document.getElementById("addPlantModal").style.display = "none";
         }
 
-        function savePlantCard(event) {
-            event.preventDefault();
-            const lat = parseFloat(document.getElementById("plantLat").value);
-            const lng = parseFloat(document.getElementById("plantLng").value);
+        function savePlantCard(event, isDraftMode = false) {
+            if (event) event.preventDefault();
+
             const plantId = document.getElementById("plantId").value;
+            const nameVal = document.getElementById("plantName").value.trim();
+
+            if (!isDraftMode && !nameVal) {
+                alert("⚠️ กรุณากรอกชื่อต้นไม้/พืชด้วยครับ (หรือกดปุ่ม 'บันทึกได้เลย' หากยังไม่ต้องการใส่ข้อมูลครบ)");
+                return;
+            }
+
+            const locations = getLocationsFromForm();
+            const primaryLat = locations[0].lat;
+            const primaryLng = locations[0].lng;
+            const defaultImg = "https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy";
 
             const plantData = {
                 id: plantId,
-                name: document.getElementById("plantName").value,
-                scientific: document.getElementById("plantScientific").value,
-                type: document.getElementById("plantCategory").value,
-                category: document.getElementById("plantCategory").value,
-                family: document.getElementById("plantFamily").value,
-                avgAge: document.getElementById("plantAvgAge").value,
-                location: document.getElementById("plantLocation").value,
-                coordinates: `${lat}° N, ${lng}° E`,
-                lat: lat,
-                lng: lng,
-                icon: document.getElementById("plantIcon").value,
-                image: convertGoogleDriveUrl(document.getElementById("plantImage").value),
-                panoramaImage: convertGoogleDriveUrl(document.getElementById("plantPanorama").value),
-                description: document.getElementById("plantDescription").value
+                name: nameVal || "ยังไม่ระบุชื่อพืช",
+                scientific: document.getElementById("plantScientific").value.trim() || "-",
+                type: document.getElementById("plantCategory").value || "ไม้ยืนต้น",
+                category: document.getElementById("plantCategory").value || "ไม้ยืนต้น",
+                family: document.getElementById("plantFamily").value.trim() || "-",
+                avgAge: document.getElementById("plantAvgAge").value.trim() || "-",
+                location: document.getElementById("plantLocation").value.trim() || "ภายใน มก.ฉกส.",
+                coordinates: `${primaryLat}° N, ${primaryLng}° E`,
+                lat: primaryLat,
+                lng: primaryLng,
+                locations: locations, // อาร์เรย์เก็บพิกัดหลายจุด
+                icon: document.getElementById("plantIcon").value.trim() || "🌿",
+                image: convertGoogleDriveUrl(document.getElementById("plantImage").value.trim()) || defaultImg,
+                panoramaImage: convertGoogleDriveUrl(document.getElementById("plantPanorama").value.trim()) || defaultImg,
+                description: document.getElementById("plantDescription").value.trim() || "ไม่มีข้อมูลรายละเอียด"
             };
 
             db.ref('plants/' + plantId).set(plantData)
                 .then(() => {
                     closeAddPlantModal();
                     document.getElementById("addPlantForm").reset();
-                    alert(isEditMode ? `✅ แก้ไขข้อมูลการ์ด ${plantId} สำเร็จ!` : `🎉 สร้างการ์ดพืช ${plantId} สำเร็จแล้ว!`);
+                    alert(isEditMode ? `✅ แก้ไขข้อมูลการ์ด ${plantId} สำเร็จ!` : `🎉 บันทึกการ์ดพืช ${plantId} สำเร็จแล้ว!`);
                 })
                 .catch((err) => alert("❌ บันทึกไม่สำเร็จ: " + err.message));
         }
@@ -579,9 +636,6 @@
             }
         }
 
-        /* =========================
-           ระบบสมัครสมาชิก / ล็อกอิน / แก้ไขโพรไฟล์
-        ========================= */
         function openAuthModal(mode = 'login') {
             closeSidebar();
             switchAuthMode(mode);
@@ -767,15 +821,13 @@
             }
         }
 
-        /* =========================
-           ระบบ Realtime Database Data
-        ========================= */
         function syncRealtimeData() {
             db.ref('plants').on('value', (snapshot) => {
                 const data = snapshot.val();
                 allPlantsData = data ? Object.values(data) : [];
                 renderPlantCards(allPlantsData);
                 updateFavIcons();
+                if (map !== null) initMap(true);
             });
         }
 
@@ -903,27 +955,39 @@
             document.getElementById("emptyFavMsg").style.display = (currentView === 'favorites' && visibleCount === 0) ? "block" : "none";
         }
 
-        function initMap() {
-            if (map !== null) return;
-            map = L.map('map').setView([17.2882, 104.1123], 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        /* โหลดปักหมุดแผนที่รองรับหลายตำแหน่ง */
+        function initMap(forceReload = false) {
+            if (map === null) {
+                map = L.map('map').setView([17.2882, 104.1123], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+            }
+
+            if (forceReload) {
+                map.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) map.removeLayer(layer);
+                });
+            }
 
             allPlantsData.forEach(plant => {
-                const stickerIcon = L.divIcon({
-                    html: `<div style="font-size: 28px; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); cursor:pointer;">${plant.icon}</div>`,
-                    className: 'custom-sticker-marker',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
+                const locations = plant.locations || [{ lat: plant.lat || 17.2882, lng: plant.lng || 104.1123 }];
 
-                const marker = L.marker([plant.lat, plant.lng], { icon: stickerIcon }).addTo(map);
-                marker.bindPopup(`
-                    <div class="map-popup-card" style="text-align:center;">
-                        <img src="${plant.image}" alt="${plant.name}" style="width:100%; height:100px; object-fit:cover; border-radius:8px; margin-bottom:6px;">
-                        <b>${plant.name}</b><br>
-                        <a href="./tree.html?id=${plant.id}" style="display:inline-block; margin-top:6px; background:#2e7d32; color:white; padding:4px 10px; border-radius:12px; font-size:12px; text-decoration:none;">ดูรายละเอียด ➔</a>
-                    </div>
-                `);
+                locations.forEach((loc, index) => {
+                    const stickerIcon = L.divIcon({
+                        html: `<div style="font-size: 28px; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); cursor:pointer;">${plant.icon || '🌿'}</div>`,
+                        className: 'custom-sticker-marker',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+
+                    const marker = L.marker([loc.lat, loc.lng], { icon: stickerIcon }).addTo(map);
+                    marker.bindPopup(`
+                        <div class="map-popup-card" style="text-align:center;">
+                            <img src="${plant.image}" alt="${plant.name}" style="width:100%; height:100px; object-fit:cover; border-radius:8px; margin-bottom:6px;">
+                            <b>${plant.name} (ต้นที่ ${index + 1})</b><br>
+                            <a href="./tree.html?id=${plant.id}" style="display:inline-block; margin-top:6px; background:#2e7d32; color:white; padding:4px 10px; border-radius:12px; font-size:12px; text-decoration:none;">ดูรายละเอียด ➔</a>
+                        </div>
+                    `);
+                });
             });
         }
 
