@@ -147,7 +147,6 @@
             </a>
         </div>
         <div class="header-actions">
-            <!-- ปรับให้ปุ่ม Inbox เรียก Modal ป๊อปอัปขึ้นมาตรงๆ -->
             <button class="inbox-btn" id="inboxBtn" onclick="openInboxModal()">
                 📬 <span id="inboxBadge" class="inbox-badge" style="display: none;">0</span>
             </button>
@@ -444,7 +443,7 @@
                     const diffMs = startDate - now;
                     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-                    // 🔔 ส่งแจ้งเตือนล่วงหน้า 1 สัปดาห์ (7 วัน)
+                    // 1. แจ้งเตือนล่วงหน้า 7 วัน (1 สัปดาห์)
                     if (days <= 7 && days >= 0 && !item[`notified_7days_${currentYear}`]) {
                         broadcastNotificationToAllUsers(
                             `🌾 แจ้งเตือน: ${item.plantName} ใกล้ถึงเวลาเก็บเกี่ยว!`,
@@ -454,14 +453,16 @@
                         db.ref(`harvest_schedule/${item.id}/notified_7days_${currentYear}`).set(true);
                     }
 
+                    // 2. เมื่ออยู่ในช่วงเวลาเก็บเกี่ยว (สถานะ: พร้อมเก็บเกี่ยวแล้ว)
                     if (now >= startDate && now <= endDate) {
-                        if (!item[`notified_start_${currentYear}`]) {
+                        // 📣 ส่งข้อความแจ้งเตือนเมื่อเปลี่ยนเป็นสถานะพร้อมเก็บเกี่ยวทันที
+                        if (!item[`notified_ready_${currentYear}`]) {
                             broadcastNotificationToAllUsers(
                                 `🎉 ${item.plantName} สุกพร้อมเก็บเกี่ยวแล้ว!`,
-                                `ขณะนี้ผลผลิตของ "${item.plantName}" เข้าสู่ช่วงสุกพร้อมเก็บเกี่ยวเรียบร้อยแล้ว แวะไปเยี่ยมชมหรือเก็บเกี่ยวกันได้เลย!`,
+                                `ขณะนี้ผลผลิตของ "${item.plantName}" สุกเต็มที่และพร้อมสำหรับการเก็บเกี่ยวแล้ว! แวะไปเก็บเกี่ยวหรือเยี่ยมชมกันได้เลยครับ`,
                                 'harvest'
                             );
-                            db.ref(`harvest_schedule/${item.id}/notified_start_${currentYear}`).set(true);
+                            db.ref(`harvest_schedule/${item.id}/notified_ready_${currentYear}`).set(true);
                         }
 
                         badgeElem.className = "status-badge active";
@@ -496,6 +497,7 @@
             }, 1000);
         }
 
+        // ฟังก์ชันส่งข้อความแจ้งเตือนหาผู้ใช้ทุกคนในระบบ
         function broadcastNotificationToAllUsers(title, message, status) {
             db.ref('user_notifications').once('value', (snapshot) => {
                 const usersNotifs = snapshot.val();
