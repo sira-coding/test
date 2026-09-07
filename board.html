@@ -41,11 +41,6 @@
         .sidebar-menu li { margin-bottom: 10px; }
         .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
-        .menu-divider { height: 1px; background: #eee; margin: 15px 0; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px); }
-        .overlay.active { display: block; }
-
-        /* User Profile Box */
         .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
         body.dark-mode .user-profile-box { background: #2a352c; }
         .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
@@ -59,42 +54,46 @@
         .heading h1 { font-size: 32px; margin-bottom: 6px; }
         .heading p { color: #718071; font-size: 15px; }
 
-        /* =========================
-           สไตล์บอร์ดกระดาษโน้ต
-        ========================= */
         .board-header-action { display: flex; justify-content: space-between; align-items: center; margin: 25px 0; }
         .btn-create-post { background: #2e7d32; color: white; border: none; padding: 12px 24px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.25); transition: 0.2s; }
         .btn-create-post:hover { transform: translateY(-2px); background: #236327; }
 
-        .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 20px; }
         
-        /* การ์ดกระดาษโน้ตวินเทจ */
-        .paper-note { background: #fffdf0; border-radius: 6px; overflow: hidden; box-shadow: 3px 10px 20px rgba(0,0,0,0.12); position: relative; border: 1px solid #f0e6c2; transform: rotate(-1deg); transition: 0.3s; color: #333; }
-        .paper-note:nth-child(even) { transform: rotate(1.5deg); background: #fdfbf7; }
-        .paper-note:hover { transform: scale(1.03) rotate(0deg); z-index: 10; box-shadow: 5px 15px 25px rgba(0,0,0,0.18); }
-        
-        /* สติกเกอร์/เทปแปะมุมกระดาษ */
+        /* การ์ดกระดาษโน้ต */
+        .paper-note { background: #fffdf0; border-radius: 8px; overflow: hidden; box-shadow: 3px 10px 20px rgba(0,0,0,0.12); position: relative; border: 1px solid #f0e6c2; transform: rotate(-0.5deg); transition: 0.3s; color: #333; display: flex; flex-direction: column; }
+        .paper-note:nth-child(even) { transform: rotate(0.8deg); background: #fdfbf7; }
         .paper-note::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 70px; height: 20px; background: rgba(220, 210, 180, 0.6); border-left: 2px dashed rgba(255,255,255,0.5); border-right: 2px dashed rgba(255,255,255,0.5); backdrop-filter: blur(2px); z-index: 5; }
         
-        /* รูปปกผู้ใช้งาน */
         .note-cover-img { width: 100%; height: 90px; object-fit: cover; border-bottom: 1px solid #eee; display: block; }
-
-        .note-body { padding: 16px; }
+        .note-body { padding: 16px; flex: 1; }
         .note-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px dashed #ddd; padding-bottom: 8px; }
         .note-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
         .note-user { font-weight: bold; font-size: 13px; color: #2e7d32; }
         .note-timer { font-size: 10px; color: #d32f2f; background: #ffebee; padding: 2px 6px; border-radius: 10px; margin-left: auto; font-weight: bold; }
 
-        /* กรอบโพลารอยด์แปะรูปต้นไม้ */
         .polaroid-frame { background: white; padding: 8px 8px 12px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #eee; margin-bottom: 12px; text-align: center; }
         .polaroid-img { width: 100%; height: 150px; object-fit: cover; border-radius: 2px; }
         .polaroid-title { font-size: 13px; font-weight: bold; color: #444; margin-top: 6px; }
 
         .note-text { font-size: 14px; line-height: 1.5; color: #2c3e50; word-break: break-word; }
-        
-        /* ปุ่มลบสำหรับแอดมิน */
         .btn-delete-post { width: 100%; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 6px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        .btn-delete-post:hover { background: #d32f2f; color: white; }
+
+        /* ส่วนกล่องคอมเมนต์พูดคุยในโน้ต */
+        .comments-section-box { border-top: 1px dashed #e0d8b8; background: rgba(0,0,0,0.02); padding: 12px 16px; margin-top: 10px; }
+        .btn-toggle-comments { background: none; border: none; color: #2e7d32; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+        
+        .comments-container { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; margin-bottom: 10px; }
+        .comment-item { display: flex; gap: 8px; background: #fff; padding: 6px 10px; border-radius: 8px; font-size: 12px; border: 1px solid #eee; position: relative; }
+        .comment-item-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+        .comment-item-content { flex: 1; }
+        .comment-item-user { font-weight: bold; color: #2e7d32; margin-right: 4px; }
+        .comment-item-text { color: #333; word-break: break-word; }
+        .btn-del-comment { position: absolute; right: 6px; top: 4px; background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 11px; }
+
+        .comment-input-row { display: flex; gap: 6px; margin-top: 6px; }
+        .comment-input-row input { flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 12px; outline: none; }
+        .comment-input-row button { background: #2e7d32; color: white; border: none; padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
         /* Modal Popups */
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
@@ -109,7 +108,7 @@
 
         @media (max-width: 600px) {
             .heading h1 { font-size: 24px; }
-            .board-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+            .board-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
         }
     </style>
 </head>
@@ -153,7 +152,7 @@
     <main>
         <div class="heading">
             <h1>Nature Board 📌</h1>
-            <p>แปะการ์ดพืช แชร์ความรู้สึกและความประทับใจ (โน้ตจะคงอยู่เป็นเวลา 24 ชั่วโมง)</p>
+            <p>แปะการ์ดพืช แชร์ความรู้สึก และร่วมพูดคุยโต้ตอบกัน (โน้ตจะคงอยู่เป็นเวลา 24 ชั่วโมง)</p>
         </div>
 
         <div class="board-header-action">
@@ -161,7 +160,7 @@
         </div>
 
         <div class="board-grid" id="boardGrid">
-            <!-- การ์ดโน้ตจะถูกซิงค์มาวางที่นี่ -->
+            <!-- โพสต์โน้ตจะถูกโหลดมาแสดงที่นี่ -->
         </div>
     </main>
 
@@ -226,7 +225,7 @@
         }
 
         /* =========================
-           ระบบเว็บบอร์ดพูดคุย (มีรูปปก & ลบใน 24 ชม.)
+           ระบบเว็บบอร์ด & แสดงข้อความคอมเมนต์พูดคุย
         ========================= */
         function syncBoardPosts() {
             db.ref('posts').on('value', (snapshot) => {
@@ -248,7 +247,6 @@
                     const postTime = new Date(post.createdAt).getTime();
                     const ageMs = now - postTime;
 
-                    // เช็กว่าเกิน 24 ชม. หรือยัง หากเกินจะข้ามการแสดงผลและสั่งลบใน DB
                     if (ageMs > twentyFourHoursMs) {
                         db.ref('posts/' + post.id).remove();
                         return;
@@ -260,13 +258,31 @@
                     const note = document.createElement("div");
                     note.className = "paper-note";
 
-                    // รูปปก Cover Image ด้านบน
                     const coverHtml = post.coverImage ? `<img class="note-cover-img" src="${post.coverImage}" alt="Cover">` : '';
-
-                    // ปุ่มลบสำหรับ Admin
                     const adminDeleteBtn = (currentUser && currentUser.role === 'admin') 
                         ? `<button class="btn-delete-post" onclick="deletePost('${post.id}')">🗑️ ลบโน้ตนี้ (Admin)</button>` 
                         : '';
+
+                    // สร้างส่วนของคอมเมนต์พูดคุยย่อย
+                    const commentsObj = post.comments || {};
+                    const commentsList = Object.values(commentsObj);
+                    let commentsHtml = '';
+
+                    commentsList.forEach(c => {
+                        const canDelComment = currentUser && (currentUser.username === c.userId || currentUser.role === 'admin');
+                        const delCommentBtn = canDelComment ? `<button class="btn-del-comment" onclick="deleteSubComment('${post.id}', '${c.id}')">✕</button>` : '';
+
+                        commentsHtml += `
+                            <div class="comment-item">
+                                <img class="comment-item-avatar" src="${c.userAvatar}">
+                                <div class="comment-item-content">
+                                    <span class="comment-item-user">${c.userName}:</span>
+                                    <span class="comment-item-text">${c.text}</span>
+                                </div>
+                                ${delCommentBtn}
+                            </div>
+                        `;
+                    });
 
                     note.innerHTML = `
                         ${coverHtml}
@@ -283,6 +299,17 @@
                             <div class="note-text">${post.content}</div>
                             ${adminDeleteBtn}
                         </div>
+
+                        <div class="comments-section-box">
+                            <div class="btn-toggle-comments">💬 ความคิดเห็น (${commentsList.length})</div>
+                            <div class="comments-container">
+                                ${commentsHtml || '<div style="color:#aaa; font-size:11px; text-align:center;">ยังไม่มีความคิดเห็น มาพูดคุยกันได้เลย!</div>'}
+                            </div>
+                            <div class="comment-input-row">
+                                <input type="text" id="inputComment_${post.id}" placeholder="เขียนคอมเมนต์พูดคุย..." onkeydown="if(event.key==='Enter') sendSubComment('${post.id}')">
+                                <button onclick="sendSubComment('${post.id}')">ส่ง 🚀</button>
+                            </div>
+                        </div>
                     `;
                     grid.appendChild(note);
                 });
@@ -291,6 +318,36 @@
                     grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#777; padding:40px;">📌 โน้ตทั้งหมดหมดอายุแล้ว มาเขียนโน้ตใหม่กันเถอะ!</div>`;
                 }
             });
+        }
+
+        function sendSubComment(postId) {
+            if (!currentUser) {
+                alert("🔒 กรุณาเข้าสู่ระบบในคลังธรรมชาติ (library.html) ก่อนร่วมพูดคุยครับ");
+                return;
+            }
+
+            const input = document.getElementById(`inputComment_${postId}`);
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const commentRef = db.ref(`posts/${postId}/comments`).push();
+            commentRef.set({
+                id: commentRef.key,
+                userId: currentUser.username,
+                userName: currentUser.fullName,
+                userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
+                text: text,
+                createdAt: new Date().toISOString()
+            }).then(() => {
+                input.value = "";
+            });
+        }
+
+        function deleteSubComment(postId, commentId) {
+            if (confirm("⚠️ ลบข้อความความคิดเห็นนี้ใช่หรือไม่?")) {
+                db.ref(`posts/${postId}/comments/${commentId}`).remove();
+            }
         }
 
         function deletePost(postId) {
