@@ -17,6 +17,9 @@
         body { font-family: Arial, sans-serif; background: #f5f8f4; color: #263528; padding-bottom: 50px; transition: background 0.3s, color 0.3s; }
         body.dark-mode { background: #121813; color: #e0e6e1; }
         body.dark-mode header, body.dark-mode .sidebar { background: #1e2620; border-color: #2e3b30; }
+        body.dark-mode .sidebar a { color: #e0e6e1; }
+        body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
+        body.dark-mode .logo-text { color: #81c784 !important; }
         body.dark-mode .suggest-card { background: #1e2620; color: #e0e6e1; }
         body.dark-mode input, body.dark-mode textarea, body.dark-mode select { background: #2a352c; border-color: #3e4e40; color: #fff; }
 
@@ -25,7 +28,7 @@
         .hamburger-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: inherit; padding: 5px; }
         .header-logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .header-logo-img { height: 38px; width: auto; }
-        .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; }
+        .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
 
         .header-actions { display: flex; align-items: center; gap: 12px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
@@ -38,6 +41,16 @@
         .sidebar-menu li { margin-bottom: 10px; }
         .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
+
+        /* User Profile Box แบบเดียวกับ board.html */
+        .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
+        body.dark-mode .user-profile-box { background: #2a352c; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
+        .user-profile-name { font-weight: bold; color: #2e7d32; font-size: 15px; margin-bottom: 2px; }
+        body.dark-mode .user-profile-name { color: #81c784; }
+        .user-role-badge { font-size: 11px; color: #666; margin-bottom: 10px; }
+        body.dark-mode .user-role-badge { color: #aaa; }
+        .btn-logout { background: #d32f2f; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
 
         main { max-width: 700px; margin: auto; padding: 35px 20px; }
         .heading h1 { font-size: 28px; margin-bottom: 6px; color: #2e7d32; }
@@ -57,6 +70,11 @@
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
         .overlay.active { display: block; }
+
+        @media (max-width: 600px) {
+            .heading h1 { font-size: 24px; }
+            .form-row { flex-direction: column; gap: 0; }
+        }
     </style>
 </head>
 
@@ -69,6 +87,14 @@
             <h3>เมนูหลัก 🌿</h3>
             <button class="sidebar-close" onclick="closeSidebar()">✕</button>
         </div>
+
+        <div class="user-profile-box" id="userProfileBox" style="display: none;">
+            <img class="user-avatar" id="userAvatarImg" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" alt="Avatar">
+            <div class="user-profile-name" id="userProfileName">👤 User Name</div>
+            <div class="user-role-badge" id="userRoleBadge">สมาชิกทั่วไป</div>
+            <button class="btn-logout" onclick="logoutUser()">ออกจากระบบ</button>
+        </div>
+
         <ul class="sidebar-menu">
             <li><a href="./library.html">🌿 คลังธรรมชาติ</a></li>
             <li><a href="./board.html">📌 บอร์ดพูดคุยความรู้สึก</a></li>
@@ -164,7 +190,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUser = JSON.parse(localStorage.getItem("ku_user") || "null");
+        let currentUser = null;
+
+        function checkUserSession() {
+            const savedUser = localStorage.getItem("ku_user");
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                const profileBox = document.getElementById("userProfileBox");
+                document.getElementById("userProfileName").innerText = currentUser.fullName;
+                // ดึงรูป avatar ตรงๆ เช่นเดียวกับหน้า board.html
+                document.getElementById("userAvatarImg").src = currentUser.avatar;
+                document.getElementById("userRoleBadge").innerText = currentUser.role === 'admin' ? "🔑 ผู้ดูแลระบบ" : "👤 สมาชิกทั่วไป";
+                profileBox.style.display = "block";
+            }
+        }
+
+        function logoutUser() {
+            currentUser = null;
+            localStorage.removeItem("ku_user");
+            location.reload();
+        }
 
         function submitPlantSuggestion(e) {
             e.preventDefault();
@@ -179,7 +224,7 @@
                 id: sugRef.key,
                 userId: currentUser.username,
                 userName: currentUser.fullName,
-                userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
+                userAvatar: currentUser.avatar,
                 icon: document.getElementById("sugIcon").value.trim() || "🌿",
                 name: document.getElementById("sugName").value.trim() || "ยังไม่ระบุชื่อพืช",
                 scientific: document.getElementById("sugScientific").value.trim() || "-",
@@ -213,6 +258,8 @@
                 if (btn) btn.innerHTML = "☀️";
             }
         })();
+
+        checkUserSession();
     </script>
 </body>
 </html>
