@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>กล่องข้อความ & การแจ้งเตือน - My KU My Nature</title>
+    <title>ฤดูกาลเก็บเกี่ยวผลผลิต - My KU My Nature</title>
 
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
 
@@ -20,8 +20,9 @@
         body.dark-mode .sidebar a { color: #e0e6e1; }
         body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
         body.dark-mode .logo-text { color: #81c784 !important; }
-        body.dark-mode .inbox-card-item { background: #1e2620; border-color: #2e3b30; color: #e0e6e1; }
-        body.dark-mode .inbox-detail-box { background: #2a352c; border-color: #3e4e40; color: #e0e6e1; }
+        body.dark-mode .harvest-card { background: #1e2620; border-color: #2e3b30; color: #e0e6e1; }
+        body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
+        body.dark-mode input, body.dark-mode select { background: #2a352c; border-color: #3e4e40; color: #fff; }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -32,9 +33,6 @@
 
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
-
-        .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; text-decoration: none; display: flex; align-items: center; }
-        .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
@@ -54,30 +52,51 @@
         body.dark-mode .user-role-badge { color: #aaa; }
         .btn-logout { background: #d32f2f; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
 
-        main { max-width: 800px; margin: auto; padding: 35px 20px; }
-        .heading h1 { font-size: 28px; margin-bottom: 6px; color: #2e7d32; }
+        main { max-width: 1000px; margin: auto; padding: 35px 20px; }
+        .heading-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; }
+        .heading h1 { font-size: 28px; color: #2e7d32; }
         body.dark-mode .heading h1 { color: #81c784; }
-        .heading p { color: #718071; font-size: 14px; margin-bottom: 25px; }
+        .heading p { color: #718071; font-size: 14px; margin-top: 4px; }
 
-        .inbox-list-container { display: flex; flex-direction: column; gap: 15px; }
-        .inbox-card-item { background: white; border: 1px solid #e0e0e0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); position: relative; }
-        .inbox-user-info { font-size: 13px; color: #2e7d32; font-weight: bold; margin-bottom: 8px; }
-        body.dark-mode .inbox-user-info { color: #81c784; }
+        .btn-add-harvest { background: #2e7d32; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; display: none; transition: 0.2s; }
+        .btn-add-harvest:hover { background: #236327; }
 
-        .inbox-detail-box { background: #f8faf8; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 13px; line-height: 1.6; }
-        
-        .inbox-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-approve { background: #2e7d32; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-approve:hover { background: #236327; }
-        .btn-reject { background: #d32f2f; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-reject:hover { background: #b71c1c; }
+        .harvest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .harvest-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.06); border: 1px solid #e5e5e5; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+        .harvest-img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
+        .harvest-title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+        .harvest-season-text { font-size: 13px; color: #666; margin-bottom: 12px; }
+        body.dark-mode .harvest-season-text { color: #aaa; }
+
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .status-badge.waiting { background: #fff3e0; color: #e65100; }
+        .status-badge.active { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .countdown-box { background: #f8faf8; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; text-align: center; }
+        body.dark-mode .countdown-box { background: #2a352c; border-color: #3e4e40; }
+        .countdown-timer { font-size: 20px; font-weight: bold; font-family: monospace; color: #2e7d32; margin-top: 4px; }
+        body.dark-mode .countdown-timer { color: #81c784; }
+        .countdown-timer.zero { color: #d32f2f; }
+
+        .btn-del-harvest { position: absolute; top: 10px; right: 10px; background: rgba(211, 47, 47, 0.9); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: none; font-weight: bold; }
+
+        .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
+        .admin-modal-content { background: white; width: 100%; max-width: 480px; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #2e7d32; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
+        .btn-ai-harvest { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; float: right; }
+        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
         .overlay.active { display: block; }
-
-        @media (max-width: 600px) {
-            .heading h1 { font-size: 24px; }
-        }
     </style>
 </head>
 
@@ -103,7 +122,7 @@
             <li><a href="./library.html?view=favorites">❤️ รายการโปรดของฉัน</a></li>
             <li><a href="./board.html">📌 บอร์ดพูดคุยความรู้สึก</a></li>
             <li><a href="./suggest.html">🌱 แนะนำให้รู้จัก</a></li>
-            <li><a href="./inbox.html" class="active">📬 กล่องข้อความ/การแจ้งเตือน</a></li>
+            <li><a href="./harvest.html" class="active">🌾 ฤดูเก็บเกี่ยวผลผลิต</a></li>
             <li><a href="./library.html?view=map">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
         </ul>
     </div>
@@ -117,23 +136,80 @@
             </a>
         </div>
         <div class="header-actions">
-            <a href="./inbox.html" class="inbox-btn" id="inboxBtn">
-                📬 <span id="inboxBadge" class="inbox-badge" style="display: none;">0</span>
-            </a>
             <button class="theme-toggle" id="themeToggleBtn" onclick="toggleDarkMode()">🌙</button>
         </div>
     </header>
 
     <main>
-        <div class="heading">
-            <h1 id="pageTitle">📬 กล่องข้อความ & การแจ้งเตือน</h1>
-            <p id="pageSub">ติดตามสถานะรายการเสนอพืชและการแจ้งเตือนทั้งหมดของคุณได้ที่นี่</p>
+        <div class="heading-row">
+            <div class="heading">
+                <h1>🌾 ปฏิทิน & ฤดูเก็บเกี่ยวผลผลิต</h1>
+                <p>เช็กเวลานับถอยหลังช่วงเวลาที่ผลผลิตของต้นไม้แต่ละชนิดพร้อมเก็บเกี่ยว</p>
+            </div>
+            <button class="btn-add-harvest" id="btnAddHarvest" onclick="openAddHarvestModal()">➕ เพิ่มตั้งค่าฤดูกาล</button>
         </div>
 
-        <div class="inbox-list-container" id="inboxListContainer">
-            <p style="text-align: center; color: #777; padding: 40px;">⏳ กำลังโหลดข้อมูล...</p>
+        <div class="harvest-grid" id="harvestGrid">
+            <p style="grid-column: 1/-1; text-align: center; color: #777; padding: 40px;">⏳ กำลังโหลดข้อมูลฤดูกาลเก็บเกี่ยว...</p>
         </div>
     </main>
+
+    <!-- Modal ตั้งค่าฤดูเก็บเกี่ยว (Admin) -->
+    <div class="admin-modal" id="harvestModal">
+        <div class="admin-modal-content">
+            <div class="modal-header">
+                <h2>🌾 เพิ่มฤดูกาลเก็บเกี่ยว</h2>
+                <button class="sidebar-close" onclick="closeHarvestModal()">✕</button>
+            </div>
+            <form id="harvestForm" onsubmit="saveHarvestData(event)">
+                <div class="form-group">
+                    <label>เลือกพืชจากคลังธรรมชาติ</label>
+                    <select id="harvestPlantSelect" required onchange="onPlantSelectChange()">
+                        <option value="">-- เลือกรายการพืช --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn-ai-harvest" onclick="autoDetectHarvestAI()">🤖 AI ค้นหาฤดูกาล</button>
+                    <label>เดือนเริ่มต้นเก็บเกี่ยว</label>
+                    <select id="startMonth" required>
+                        <option value="1">มกราคม</option>
+                        <option value="2">กุมภาพันธ์</option>
+                        <option value="3">มีนาคม</option>
+                        <option value="4">เมษายน</option>
+                        <option value="5">พฤษภาคม</option>
+                        <option value="6">มิถุนายน</option>
+                        <option value="7">กรกฎาคม</option>
+                        <option value="8">สิงหาคม</option>
+                        <option value="9">กันยายน</option>
+                        <option value="10">ตุลาคม</option>
+                        <option value="11">พฤศจิกายน</option>
+                        <option value="12">ธันวาคม</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>เดือนสิ้นสุดเก็บเกี่ยว</label>
+                    <select id="endMonth" required>
+                        <option value="1">มกราคม</option>
+                        <option value="2">กุมภาพันธ์</option>
+                        <option value="3">มีนาคม</option>
+                        <option value="4">เมษายน</option>
+                        <option value="5">พฤษภาคม</option>
+                        <option value="6">มิถุนายน</option>
+                        <option value="7">กรกฎาคม</option>
+                        <option value="8">สิงหาคม</option>
+                        <option value="9">กันยายน</option>
+                        <option value="10">ตุลาคม</option>
+                        <option value="11">พฤศจิกายน</option>
+                        <option value="12">ธันวาคม</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">💾 บันทึกกำหนดการ</button>
+            </form>
+        </div>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -151,168 +227,197 @@
         const db = firebase.database();
 
         let currentUser = null;
-
-        function generateNextPlantId() {
-            const timestamp = Date.now().toString().slice(-6);
-            const randomNum = Math.floor(Math.random() * 90 + 10);
-            return `KU${timestamp}${randomNum}`;
-        }
+        let allPlantsData = [];
+        let monthNames = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
         function checkUserSession() {
             const savedUser = localStorage.getItem("ku_user");
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
-                const profileBox = document.getElementById("userProfileBox");
                 document.getElementById("userProfileName").innerText = currentUser.fullName;
                 document.getElementById("userAvatarImg").src = currentUser.avatar;
                 document.getElementById("userRoleBadge").innerText = currentUser.role === 'admin' ? "🔑 ผู้ดูแลระบบ" : "👤 สมาชิกทั่วไป";
-                profileBox.style.display = "block";
-                loadInboxData();
-            } else {
-                document.getElementById("inboxListContainer").innerHTML = `
-                    <div style="text-align:center; color:#777; padding:50px;">
-                        <h3>🔒 กรุณาเข้าสู่ระบบ</h3>
-                        <p style="margin-top:8px;">เข้าสู่ระบบเพื่อดูการแจ้งเตือนและรายการเสนอพืชของคุณ</p>
-                    </div>
-                `;
+                document.getElementById("userProfileBox").style.display = "block";
+
+                if (currentUser.role === 'admin') {
+                    document.getElementById("btnAddHarvest").style.display = "block";
+                }
             }
         }
 
-        function loadInboxData() {
-            if (!currentUser) return;
+        function loadPlantsList() {
+            db.ref('plants').once('value', (snapshot) => {
+                const data = snapshot.val();
+                allPlantsData = data ? Object.values(data) : [];
+            });
+        }
 
-            const listContainer = document.getElementById("inboxListContainer");
-            const pageTitle = document.getElementById("pageTitle");
+        function syncHarvestData() {
+            db.ref('harvest_schedule').on('value', (snapshot) => {
+                const scheduleData = snapshot.val();
+                const grid = document.getElementById("harvestGrid");
+                grid.innerHTML = "";
 
-            if (currentUser.role === 'admin') {
-                pageTitle.innerText = "📬 รายการเสนอพืชรอการอนุมัติ (Admin)";
-                db.ref('pending_plants').on('value', (snapshot) => {
-                    const pending = snapshot.val();
-                    listContainer.innerHTML = "";
+                if (!scheduleData) {
+                    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #777; padding: 40px;">🌾 ยังไม่มีข้อมูลฤดูเก็บเกี่ยวในขณะนี้</p>`;
+                    return;
+                }
 
-                    if (!pending) {
-                        listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:40px;">ไม่มีรายการเสนอพืชรอการอนุมัติในขณะนี้</p>`;
-                        return;
+                Object.values(scheduleData).forEach(item => {
+                    const card = document.createElement("div");
+                    card.className = "harvest-card";
+
+                    const delBtn = (currentUser && currentUser.role === 'admin') 
+                        ? `<button class="btn-del-harvest" onclick="deleteHarvest('${item.id}')" style="display:block;">✕</button>` 
+                        : '';
+
+                    card.innerHTML = `
+                        ${delBtn}
+                        <div>
+                            <img class="harvest-img" src="${item.plantImage}" alt="${item.plantName}">
+                            <div class="harvest-title">${item.plantIcon || '🌿'} ${item.plantName}</div>
+                            <div class="harvest-season-text">🗓️ ช่วงเก็บเกี่ยว: <b>${monthNames[item.startMonth]} - ${monthNames[item.endMonth]}</b></div>
+                        </div>
+                        <div>
+                            <div class="status-badge" id="statusBadge_${item.id}">⏳ กำลังคำนวณ...</div>
+                            <div class="countdown-box">
+                                <div style="font-size:11px; color:#777;">นับถอยหลังช่วงเก็บเกี่ยว</div>
+                                <div class="countdown-timer" id="timer_${item.id}">00d 00:00:00</div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                updateAllCountdowns(scheduleData);
+            });
+        }
+
+        function updateAllCountdowns(scheduleData) {
+            setInterval(() => {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+
+                Object.values(scheduleData).forEach(item => {
+                    const timerElem = document.getElementById(`timer_${item.id}`);
+                    const badgeElem = document.getElementById(`statusBadge_${item.id}`);
+                    if (!timerElem || !badgeElem) return;
+
+                    const startMonth = parseInt(item.startMonth);
+                    const endMonth = parseInt(item.endMonth);
+
+                    // วันเริ่มต้นของเดือนเก็บเกี่ยว
+                    let startDate = new Date(currentYear, startMonth - 1, 1, 0, 0, 0);
+                    // วันสิ้นสุดของเดือนเก็บเกี่ยว (วันสุดท้ายของเดือนนั้น)
+                    let endDate = new Date(currentYear, endMonth, 0, 23, 59, 59);
+
+                    // ถ้าเดือนสิ้นสุดน้อยกว่าเดือนเริ่มต้น (เช่น พ.ย. ถึง ก.พ. ข้ามปี)
+                    if (endMonth < startMonth) {
+                        if (now.getMonth() + 1 < startMonth) {
+                            startDate = new Date(currentYear - 1, startMonth - 1, 1, 0, 0, 0);
+                        } else {
+                            endDate = new Date(currentYear + 1, endMonth, 0, 23, 59, 59);
+                        }
                     }
 
-                    Object.values(pending).forEach(item => {
-                        const card = document.createElement("div");
-                        card.className = "inbox-card-item";
+                    if (now >= startDate && now <= endDate) {
+                        // ช่วงระหว่างฤดูเก็บเกี่ยว
+                        badgeElem.className = "status-badge active";
+                        badgeElem.innerText = "✨ สุกพร้อมเก็บเกี่ยวแล้ว!";
+                        timerElem.className = "countdown-timer zero";
+                        timerElem.innerText = "00:00:00 (อยู่ในช่วงเก็บเกี่ยว)";
+                    } else {
+                        // นอกฤดูเก็บเกี่ยว (คำนวณเวลานับถอยหลังรอฤดูถัดไป)
+                        let targetDate = startDate;
+                        if (now > endDate) {
+                            targetDate = new Date(currentYear + 1, startMonth - 1, 1, 0, 0, 0);
+                        }
 
-                        const locs = item.locations || [];
-                        const locStr = locs.map((l, i) => `จุดที่ ${i+1}: ${l.lat}, ${l.lng}`).join(" | ");
+                        const diffMs = targetDate - now;
+                        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+                        const mins = Math.floor((diffMs / (1000 * 60)) % 60);
+                        const secs = Math.floor((diffMs / 1000) % 60);
 
-                        card.innerHTML = `
-                            <div class="inbox-user-info">👤 ผู้เสนอ: ${item.userName} (${item.userId})</div>
-                            <div style="font-size:18px; font-weight:bold;">${item.icon || '🌿'} ${item.name} <span style="font-size:13px; font-weight:normal; color:#666;">(${item.category})</span></div>
-                            <div class="inbox-detail-box">
-                                <b>ชื่อวิทยาศาสตร์:</b> ${item.scientific}<br>
-                                <b>วงศ์ (Family):</b> ${item.family} | <b>อายุเฉลี่ย:</b> ${item.avgAge}<br>
-                                <b>สถานที่พบ:</b> ${item.location}<br>
-                                <b>พิกัดตำแหน่ง:</b> ${locStr || 'ไม่มีข้อมูลพิกัด'}
-                                <div style="margin-top:6px; border-top:1px dashed #ccc; padding-top:6px;">
-                                    <b>รายละเอียดเพิ่มเติม:</b><br>${item.description}
-                                </div>
-                            </div>
-                            <div class="inbox-actions">
-                                <button class="btn-approve" onclick="approvePlant('${item.id}')">✅ อนุมัติลงคลัง</button>
-                                <button class="btn-reject" onclick="rejectPlant('${item.id}', '${item.userId}', '${item.name}')">❌ ไม่อนุมัติ</button>
-                            </div>
-                        `;
-                        listContainer.appendChild(card);
-                    });
-                });
-            } else {
-                pageTitle.innerText = "📩 กล่องแจ้งเตือนผลเสนอพืช";
-                db.ref(`user_notifications/${currentUser.username}`).on('value', (snapshot) => {
-                    const notifs = snapshot.val();
-                    listContainer.innerHTML = "";
-
-                    if (!notifs) {
-                        listContainer.innerHTML = `<p style="text-align:center; color:#777; padding:40px;">ไม่มีข้อความแจ้งเตือน</p>`;
-                        return;
+                        badgeElem.className = "status-badge waiting";
+                        badgeElem.innerText = "⏳ รอช่วงเวลาผลผลิตออก";
+                        timerElem.className = "countdown-timer";
+                        timerElem.innerText = `${days}วัน ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                     }
-
-                    // อัปเดตสถานะให้อ่านแล้วอัตโนมัติเมื่อเปิดหน้านี้
-                    const updates = {};
-                    Object.keys(notifs).forEach(key => {
-                        updates[`user_notifications/${currentUser.username}/${key}/isRead`] = true;
-                    });
-                    db.ref().update(updates);
-
-                    Object.values(notifs).reverse().forEach(n => {
-                        const card = document.createElement("div");
-                        card.className = "inbox-card-item";
-                        const statusColor = n.status === 'approved' ? '#2e7d32' : '#d32f2f';
-                        card.innerHTML = `
-                            <div style="font-weight:bold; font-size:16px; color:${statusColor}; margin-bottom:6px;">${n.title}</div>
-                            <div style="font-size:14px; line-height:1.5;">${n.message}</div>
-                            <div style="font-size:11px; color:#888; margin-top:10px;">🕒 ${new Date(n.createdAt).toLocaleString('th-TH')}</div>
-                        `;
-                        listContainer.appendChild(card);
-                    });
                 });
+            }, 1000);
+        }
+
+        function openAddHarvestModal() {
+            const select = document.getElementById("harvestPlantSelect");
+            select.innerHTML = `<option value="">-- เลือกรายการพืช --</option>`;
+            allPlantsData.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.icon || '🌿'} ${p.name}</option>`;
+            });
+            document.getElementById("harvestModal").style.display = "flex";
+        }
+
+        function closeHarvestModal() { document.getElementById("harvestModal").style.display = "none"; }
+
+        function autoDetectHarvestAI() {
+            const select = document.getElementById("harvestPlantSelect");
+            const plantId = select.value;
+            if (!plantId) return alert("⚠️ กรุณาเลือกรายการพืชก่อนกดค้นหาด้วย AI ครับ");
+
+            const plant = allPlantsData.find(p => p.id === plantId);
+            const plantName = plant ? plant.name : '';
+
+            const aiKnowledge = {
+                "มะม่วง": { start: 3, end: 5 },
+                "ทุเรียน": { start: 4, end: 7 },
+                "นนทรี": { start: 2, end: 4 },
+                "กุหลาบ": { start: 1, end: 12 }
+            };
+
+            let found = false;
+            for (let key in aiKnowledge) {
+                if (plantName.includes(key)) {
+                    document.getElementById("startMonth").value = aiKnowledge[key].start;
+                    document.getElementById("endMonth").value = aiKnowledge[key].end;
+                    found = true;
+                    alert(`🤖 AI ตรวจพบฤดูเก็บเกี่ยวของ "${plantName}": ${monthNames[aiKnowledge[key].start]} - ${monthNames[aiKnowledge[key].end]}`);
+                    break;
+                }
+            }
+
+            if (!found) {
+                // ค่าเริ่มต้นสุ่มตัวอย่างหากไม่พบในฐานข้อมูล
+                document.getElementById("startMonth").value = 5;
+                document.getElementById("endMonth").value = 7;
+                alert(`🤖 AI คาดการณ์ฤดูเก็บเกี่ยวเฉลี่ย: พฤษภาคม - กรกฎาคม`);
             }
         }
 
-        function approvePlant(pendingId) {
-            db.ref(`pending_plants/${pendingId}`).once('value', (snapshot) => {
-                const item = snapshot.val();
-                if (!item) return;
+        function saveHarvestData(e) {
+            e.preventDefault();
+            const plantId = document.getElementById("harvestPlantSelect").value;
+            const plant = allPlantsData.find(p => p.id === plantId);
+            if (!plant) return;
 
-                const newPlantId = generateNextPlantId();
-                const defaultImg = "https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy";
-                const locations = item.locations || [{ lat: 17.2882, lng: 104.1123 }];
-
-                db.ref(`plants/${newPlantId}`).set({
-                    id: newPlantId,
-                    name: item.name,
-                    scientific: item.scientific,
-                    type: item.category,
-                    category: item.category,
-                    family: item.family,
-                    avgAge: item.avgAge,
-                    location: item.location,
-                    coordinates: `${locations[0].lat}° N, ${locations[0].lng}° E`,
-                    lat: locations[0].lat,
-                    lng: locations[0].lng,
-                    locations: locations,
-                    icon: item.icon,
-                    image: defaultImg,
-                    panoramaImage: defaultImg,
-                    description: item.description,
-                    createdBy: item.userName
-                }).then(() => {
-                    db.ref(`pending_plants/${pendingId}`).remove();
-                    db.ref(`user_notifications/${item.userId}`).push().set({
-                        title: "🎉 การเสนอพืชของคุณได้รับการอนุมัติแล้ว!",
-                        message: `พืช "${item.name}" ถูกเพิ่มลงในคลังธรรมชาติเรียบร้อยแล้ว พร้อมโชว์เครดิตผู้ค้นพบชื่อคุณ`,
-                        status: "approved",
-                        isRead: false,
-                        createdAt: new Date().toISOString()
-                    });
-                    alert("✅ อนุมัติเรียบร้อย!");
-                });
+            const scheduleRef = db.ref('harvest_schedule/' + plant.id);
+            scheduleRef.set({
+                id: plant.id,
+                plantName: plant.name,
+                plantImage: plant.image,
+                plantIcon: plant.icon || '🌿',
+                startMonth: parseInt(document.getElementById("startMonth").value),
+                endMonth: parseInt(document.getElementById("endMonth").value),
+                updatedAt: new Date().toISOString()
+            }).then(() => {
+                closeHarvestModal();
+                alert("🎉 บันทึกตั้งค่าฤดูเก็บเกี่ยวสำเร็จ!");
             });
         }
 
-        function rejectPlant(pendingId, userId, plantName) {
-            const reason = prompt(`กรุณาระบุเหตุผลที่ไม่ผ่านการอนุมัติสำหรับ "${plantName}":`);
-            if (reason === null) return;
-
-            const fillReason = reason.trim() || 'ข้อมูลไม่สมบูรณ์หรือไม่ผ่านเกณฑ์การตรวจสอบ';
-
-            db.ref(`pending_plants/${pendingId}`).remove().then(() => {
-                db.ref(`user_notifications/${userId}`).push().set({
-                    title: "❌ การเสนอพืชของคุณไม่ผ่านการอนุมัติ",
-                    message: `การเสนอพืช "${plantName}" ไม่ผ่านการอนุมัติ เนื่องจาก: ${fillReason}`,
-                    status: "rejected",
-                    isRead: false,
-                    createdAt: new Date().toISOString()
-                }).then(() => {
-                    alert("❌ ปฏิเสธการอนุมัติเรียบร้อยแล้ว");
-                });
-            });
+        function deleteHarvest(id) {
+            if (confirm("⚠️ ต้องการลบการตั้งค่าฤดูกาลของพืชนี้ใช่หรือไม่?")) {
+                db.ref('harvest_schedule/' + id).remove();
+            }
         }
 
         function logoutUser() {
@@ -340,6 +445,8 @@
         })();
 
         checkUserSession();
+        loadPlantsList();
+        syncHarvestData();
     </script>
 </body>
 </html>
