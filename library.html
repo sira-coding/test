@@ -294,7 +294,7 @@
             <form id="addPlantForm" onsubmit="savePlantCard(event)">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>รหัสพืช (ID)</label>
+                        <label>รหัสพืช (Auto ID)</label>
                         <input type="text" id="plantId" readonly style="background: #eee; font-weight: bold;">
                     </div>
                     <div class="form-group">
@@ -397,6 +397,15 @@
         let isEditMode = false;
 
         /* =========================
+           วิธีที่ 1: สร้าง Unique ID แบบ Timestamp + สุ่มตัวเลข 2 หลัก
+        ========================= */
+        function generateNextPlantId() {
+            const timestamp = Date.now().toString().slice(-6);
+            const randomNum = Math.floor(Math.random() * 90 + 10);
+            return `KU${timestamp}${randomNum}`;
+        }
+
+        /* =========================
            ฟังก์ชันปุ่ม AI & พิกัดปัจจุบัน
         ========================= */
         function getCurrentLocation() {
@@ -488,18 +497,6 @@
         /* =========================
            ระบบจัดการพืช (เพิ่ม / แก้ไข / ลบ)
         ========================= */
-        function generateNextPlantId() {
-            let maxNum = 0;
-            allPlantsData.forEach(plant => {
-                const match = plant.id.match(/KU(\d+)/i);
-                if (match) {
-                    const num = parseInt(match[1]);
-                    if (num > maxNum) maxNum = num;
-                }
-            });
-            return `KU${String(maxNum + 1).padStart(3, '0')}`;
-        }
-
         function openAddPlantModal() {
             closeSidebar();
             isEditMode = false;
