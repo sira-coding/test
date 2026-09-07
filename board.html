@@ -41,6 +41,7 @@
         .sidebar-menu li { margin-bottom: 10px; }
         .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
+        
         .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
         body.dark-mode .user-profile-box { background: #2a352c; }
         .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
@@ -60,7 +61,6 @@
 
         .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 20px; }
         
-        /* การ์ดกระดาษโน้ต */
         .paper-note { background: #fffdf0; border-radius: 8px; overflow: hidden; box-shadow: 3px 10px 20px rgba(0,0,0,0.12); position: relative; border: 1px solid #f0e6c2; transform: rotate(-0.5deg); transition: 0.3s; color: #333; display: flex; flex-direction: column; }
         .paper-note:nth-child(even) { transform: rotate(0.8deg); background: #fdfbf7; }
         .paper-note::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 70px; height: 20px; background: rgba(220, 210, 180, 0.6); border-left: 2px dashed rgba(255,255,255,0.5); border-right: 2px dashed rgba(255,255,255,0.5); backdrop-filter: blur(2px); z-index: 5; }
@@ -79,7 +79,6 @@
         .note-text { font-size: 14px; line-height: 1.5; color: #2c3e50; word-break: break-word; }
         .btn-delete-post { width: 100%; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 6px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
 
-        /* ส่วนกล่องคอมเมนต์พูดคุยในโน้ต */
         .comments-section-box { border-top: 1px dashed #e0d8b8; background: rgba(0,0,0,0.02); padding: 12px 16px; margin-top: 10px; }
         .btn-toggle-comments { background: none; border: none; color: #2e7d32; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
         
@@ -95,7 +94,6 @@
         .comment-input-row input { flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 12px; outline: none; }
         .comment-input-row button { background: #2e7d32; color: white; border: none; padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-        /* Modal Popups */
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
         .admin-modal-content { background: white; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -132,7 +130,10 @@
 
         <ul class="sidebar-menu">
             <li><a href="./library.html">🌿 คลังธรรมชาติ</a></li>
+            <li><a href="./library.html?view=favorites">❤️ รายการโปรดของฉัน</a></li>
             <li><a href="./board.html" class="active">📌 บอร์ดพูดคุยความรู้สึก</a></li>
+            <li><a href="./suggest.html">🌱 แนะนำให้รู้จัก</a></li>
+            <li><a href="./library.html?view=map">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
         </ul>
     </div>
 
@@ -159,12 +160,10 @@
             <button class="btn-create-post" onclick="openCreatePostModal()">✍️ แปะโน้ตแบ่งปันความรู้สึก</button>
         </div>
 
-        <div class="board-grid" id="boardGrid">
-            <!-- โพสต์โน้ตจะถูกโหลดมาแสดงที่นี่ -->
-        </div>
+        <div class="board-grid" id="boardGrid"></div>
     </main>
 
-    <!-- Modal แปะโน้ตสร้างโพสต์ความรู้สึก -->
+    <!-- Modal สร้างโพสต์ -->
     <div class="admin-modal" id="createPostModal">
         <div class="admin-modal-content">
             <div class="modal-header">
@@ -212,8 +211,7 @@
         function convertGoogleDriveUrl(url) {
             if (!url) return "";
             if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
-            const regExp = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
-            const match = url.match(regExp);
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);
             return match ? `https://lh3.googleusercontent.com/d/${match[1] || match[2]}` : url.trim();
         }
 
@@ -224,9 +222,6 @@
             });
         }
 
-        /* =========================
-           ระบบเว็บบอร์ด & แสดงข้อความคอมเมนต์พูดคุย
-        ========================= */
         function syncBoardPosts() {
             db.ref('posts').on('value', (snapshot) => {
                 const postsData = snapshot.val();
@@ -263,7 +258,6 @@
                         ? `<button class="btn-delete-post" onclick="deletePost('${post.id}')">🗑️ ลบโน้ตนี้ (Admin)</button>` 
                         : '';
 
-                    // สร้างส่วนของคอมเมนต์พูดคุยย่อย
                     const commentsObj = post.comments || {};
                     const commentsList = Object.values(commentsObj);
                     let commentsHtml = '';
@@ -321,14 +315,9 @@
         }
 
         function sendSubComment(postId) {
-            if (!currentUser) {
-                alert("🔒 กรุณาเข้าสู่ระบบในคลังธรรมชาติ (library.html) ก่อนร่วมพูดคุยครับ");
-                return;
-            }
-
+            if (!currentUser) return alert("🔒 กรุณาเข้าสู่ระบบก่อนร่วมพูดคุยครับ");
             const input = document.getElementById(`inputComment_${postId}`);
             const text = input.value.trim();
-
             if (!text) return;
 
             const commentRef = db.ref(`posts/${postId}/comments`).push();
@@ -336,12 +325,10 @@
                 id: commentRef.key,
                 userId: currentUser.username,
                 userName: currentUser.fullName,
-                userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
+                userAvatar: currentUser.avatar,
                 text: text,
                 createdAt: new Date().toISOString()
-            }).then(() => {
-                input.value = "";
-            });
+            }).then(() => { input.value = ""; });
         }
 
         function deleteSubComment(postId, commentId) {
@@ -351,31 +338,22 @@
         }
 
         function deletePost(postId) {
-            if (confirm("⚠️ แอดมินต้องการลบโน้ตข้อความนี้ใช่หรือไม่?")) {
-                db.ref('posts/' + postId).remove()
-                    .then(() => alert("🗑️ ลบโน้ตเรียบร้อยแล้ว"))
-                    .catch(err => alert("❌ ลบไม่สำเร็จ: " + err.message));
+            if (confirm("⚠️ แอดมินต้องการลบโน้ตนี้ใช่หรือไม่?")) {
+                db.ref('posts/' + postId).remove();
             }
         }
 
         function openCreatePostModal() {
-            if (!currentUser) {
-                alert("🔒 กรุณาเข้าสู่ระบบที่หน้า คลังธรรมชาติ (library.html) ก่อนลงโน้ตความรู้สึกครับ");
-                return;
-            }
-
+            if (!currentUser) return alert("🔒 กรุณาเข้าสู่ระบบก่อนแปะโน้ตครับ");
             const select = document.getElementById("postPlantSelect");
             select.innerHTML = `<option value="">-- กรุณาเลือกต้นไม้ --</option>`;
             allPlantsData.forEach(plant => {
                 select.innerHTML += `<option value="${plant.id}">${plant.icon || '🌿'} ${plant.name}</option>`;
             });
-
             document.getElementById("createPostModal").style.display = "flex";
         }
 
-        function closeCreatePostModal() {
-            document.getElementById("createPostModal").style.display = "none";
-        }
+        function closeCreatePostModal() { document.getElementById("createPostModal").style.display = "none"; }
 
         function handleSavePost(e) {
             e.preventDefault();
@@ -386,17 +364,14 @@
             const content = document.getElementById("postContent").value.trim();
             const plant = allPlantsData.find(p => p.id === plantId);
 
-            if (!plant) {
-                alert("⚠️ ไม่พบข้อมูลการ์ดต้นไม้ที่เลือก");
-                return;
-            }
+            if (!plant) return alert("⚠️ ไม่พบข้อมูลการ์ดต้นไม้ที่เลือก");
 
             const newPostRef = db.ref('posts').push();
             newPostRef.set({
                 id: newPostRef.key,
                 userId: currentUser.username,
                 userName: currentUser.fullName,
-                userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
+                userAvatar: currentUser.avatar,
                 coverImage: convertGoogleDriveUrl(coverImageInput),
                 plantId: plant.id,
                 plantName: plant.name,
@@ -407,7 +382,7 @@
             }).then(() => {
                 closeCreatePostModal();
                 document.getElementById("createPostForm").reset();
-                alert("🎉 แปะโน้ตความรู้สึกเรียบร้อยแล้ว! (โน้ตจะอยู่เป็นเวลา 24 ชั่วโมง)");
+                alert("🎉 แปะโน้ตเรียบร้อยแล้ว!");
             });
         }
 
@@ -417,7 +392,7 @@
                 currentUser = JSON.parse(savedUser);
                 const profileBox = document.getElementById("userProfileBox");
                 document.getElementById("userProfileName").innerText = currentUser.fullName;
-                document.getElementById("userAvatarImg").src = currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`;
+                document.getElementById("userAvatarImg").src = currentUser.avatar;
                 document.getElementById("userRoleBadge").innerText = currentUser.role === 'admin' ? "🔑 ผู้ดูแลระบบ" : "👤 สมาชิกทั่วไป";
                 profileBox.style.display = "block";
             }
