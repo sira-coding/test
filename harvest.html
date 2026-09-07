@@ -356,15 +356,15 @@
                     if (now >= startDate && now <= endDate) {
                         if (!item[`notified_start_${currentYear}`]) {
                             broadcastNotificationToAllUsers(
-                                `🎉 ${item.plantName} สุกพร้อมเก็บเกี่ยวแล้ว!`,
-                                `ขณะนี้ผลผลิตของ "${item.plantName}" เข้าสู่ช่วงสุกพร้อมเก็บเกี่ยวเรียบร้อยแล้ว แวะไปเยี่ยมชมหรือเก็บเกี่ยวกันได้เลย!`,
+                                `🎉 ${item.plantName} พร้อมเก็บเกี่ยวแล้ว!`,
+                                `ขณะนี้ผลผลิตของ "${item.plantName}" เข้าสู่ช่วงพร้อมเก็บเกี่ยวเรียบร้อยแล้ว แวะไปเยี่ยมชมหรือเก็บเกี่ยวกันได้เลย!`,
                                 'harvest'
                             );
                             db.ref(`harvest_schedule/${item.id}/notified_start_${currentYear}`).set(true);
                         }
 
                         badgeElem.className = "status-badge active";
-                        badgeElem.innerText = "✨ สุกพร้อมเก็บเกี่ยวแล้ว!";
+                        badgeElem.innerText = "✨ พร้อมเก็บเกี่ยวแล้ว!";
                         timerElem.className = "countdown-timer zero";
                         timerElem.innerText = "00:00:00 (อยู่ในช่วงเก็บเกี่ยว)";
                     } else if (days <= 7 && days > 0) {
