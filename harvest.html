@@ -134,6 +134,7 @@
             <li><a href="./board.html">📌 บอร์ดพูดคุยความรู้สึก</a></li>
             <li><a href="./suggest.html">🌱 แนะนำให้รู้จัก</a></li>
             <li><a href="./harvest.html" class="active">🌾 ฤดูเก็บเกี่ยวผลผลิต</a></li>
+            <li><a href="./scan.html">📷 สแกนค้นหาพืช</a></li>
             <li><a href="./library.html?view=map">🗺️ ปักหมุดแผนที่ (KU Map)</a></li>
         </ul>
     </div>
@@ -255,7 +256,8 @@
 
         let currentUser = null;
         let allPlantsData = [];
-        let countdownTimerId = null; // ตัวแปรสำหรับป้องกันเวลานับถอยหลังทับซ้อน
+        let existingHarvestIds = {}; // เก็บ ID ของพืชที่ถูกเพิ่มในฤดูเก็บเกี่ยวแล้ว
+        let countdownTimerId = null;
         let monthNames = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
         function checkUserSession() {
@@ -382,6 +384,8 @@
                 const grid = document.getElementById("harvestGrid");
                 grid.innerHTML = "";
 
+                existingHarvestIds = {}; // รีเซ็ตค่าเพื่อเช็กรายการที่ถูกเพิ่มแล้ว
+
                 if (!scheduleData) {
                     if (countdownTimerId) clearInterval(countdownTimerId);
                     grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #777; padding: 40px;">🌾 ยังไม่มีข้อมูลฤดูเก็บเกี่ยวในขณะนี้</p>`;
@@ -389,6 +393,8 @@
                 }
 
                 Object.values(scheduleData).forEach(item => {
+                    existingHarvestIds[item.id] = true; // บันทึกว่าพืชตัวนี้ถูกเพิ่มแล้ว
+
                     const card = document.createElement("div");
                     card.className = "harvest-card";
 
@@ -419,7 +425,6 @@
         }
 
         function updateAllCountdowns(scheduleData) {
-            // เคลียร์รอบเวลานับถอยหลังเก่าทิ้ง ป้องกันเวลารันซ้อนทับกันเมื่อมีการเพิ่ม/ลบ
             if (countdownTimerId) clearInterval(countdownTimerId);
 
             const runTimer = () => {
@@ -448,7 +453,6 @@
                     const diffMs = startDate - now;
                     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-                    // 1. แจ้งเตือนล่วงหน้า 7 วัน (1 สัปดาห์)
                     if (days <= 7 && days >= 0 && !item[`notified_7days_${currentYear}`]) {
                         broadcastNotificationToAllUsers(
                             `🌾 แจ้งเตือน: ${item.plantName} ใกล้ถึงเวลาเก็บเกี่ยว!`,
@@ -458,7 +462,6 @@
                         db.ref(`harvest_schedule/${item.id}/notified_7days_${currentYear}`).set(true);
                     }
 
-                    // 2. เมื่ออยู่ในช่วงเวลาเก็บเกี่ยว (สถานะ: พร้อมเก็บเกี่ยวแล้ว)
                     if (now >= startDate && now <= endDate) {
                         if (!item[`notified_ready_${currentYear}`]) {
                             broadcastNotificationToAllUsers(
@@ -524,9 +527,14 @@
         function openAddHarvestModal() {
             const select = document.getElementById("harvestPlantSelect");
             select.innerHTML = `<option value="">-- เลือกรายการพืช --</option>`;
+            
+            // กรองเฉพาะพืชที่ยังไม่ได้ถูกเพิ่มใน harvest_schedule เท่านั้น
             allPlantsData.forEach(p => {
-                select.innerHTML += `<option value="${p.id}">${p.icon || '🌿'} ${p.name}</option>`;
+                if (!existingHarvestIds[p.id]) {
+                    select.innerHTML += `<option value="${p.id}">${p.icon || '🌿'} ${p.name}</option>`;
+                }
             });
+
             document.getElementById("harvestModal").style.display = "flex";
         }
 
