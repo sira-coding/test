@@ -202,7 +202,6 @@
             const ctx = canvas.getContext("2d");
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // จำลองระบบ AI สแกนเลือกสุ่มการ์ด หรือแมตช์จากคลังธรรมชาติมาแสดง
             const randomIndex = Math.floor(Math.random() * allPlantsData.length);
             const matchedPlant = allPlantsData[randomIndex];
 
