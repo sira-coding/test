@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดอาคาร - My KU My Nature</title>
+
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #121813; color: #e0e6e1; padding: 20px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+        .detail-wrapper { width: 100%; max-width: 950px; background: #1e2620; border: 1px solid #2e3b30; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; gap: 30px; flex-wrap: wrap; position: relative; }
+        .detail-left { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 15px; }
+        .detail-img { width: 100%; height: 320px; object-fit: cover; border-radius: 12px; border: 1px solid #3e4e40; }
+        
+        .btn-navigation { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; transition: 0.2s; box-shadow: 0 4px 15px rgba(46,125,50,0.3); }
+        .btn-navigation:hover { background: #236327; transform: translateY(-2px); }
+
+        .detail-right { flex: 1.2; min-width: 300px; display: flex; flex-direction: column; justify-content: space-between; }
+        .badge-tag { display: inline-block; background: #2a352c; color: #81c784; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-bottom: 8px; border: 1px solid #3e4e40; }
+        .building-title { font-size: 28px; font-weight: bold; color: #fff; margin-bottom: 4px; }
+        .building-scientific { font-size: 14px; color: #aaa; font-style: italic; margin-bottom: 20px; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #161e18; padding: 16px; border-radius: 14px; border: 1px solid #2e3b30; margin-bottom: 20px; }
+        .info-item label { display: block; font-size: 11px; color: #888; margin-bottom: 2px; }
+        .info-item span { font-size: 14px; font-weight: bold; color: #e0e6e1; }
+
+        .description-box { background: #161e18; padding: 16px; border-radius: 14px; border: 1px solid #2e3b30; }
+        .description-box h4 { font-size: 14px; color: #81c784; margin-bottom: 6px; }
+        .description-box p { font-size: 13px; line-height: 1.6; color: #ccc; word-break: break-word; }
+
+        .back-link { position: absolute; top: 20px; right: 25px; color: #aaa; text-decoration: none; font-size: 14px; font-weight: bold; }
+        .back-link:hover { color: #fff; }
+
+        @media (max-width: 768px) {
+            .detail-wrapper { padding: 15px; }
+            .building-title { font-size: 22px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="detail-wrapper" id="detailWrapper">
+        <a href="./buildings.html" class="back-link">✕ ปิด</a>
+        
+        <div class="detail-left">
+            <img class="detail-img" id="bImg" src="" alt="Building Image">
+            <a href="#" id="bMapBtn" target="_blank" class="btn-navigation">🗺️ นำเส้นทาง (Google Maps)</a>
+        </div>
+
+        <div class="detail-right">
+            <div>
+                <span class="badge-tag" id="bCategory">อาคารเรียน</span>
+                <div class="building-title" id="bName">กำลังโหลด...</div>
+                <div class="building-scientific" id="bScientific">-</div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>⏳ อายุ / ปีที่สร้าง</label>
+                        <span id="bAvgAge">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>📍 จุดที่ตั้ง</label>
+                        <span id="bLocation">-</span>
+                    </div>
+                    <div class="info-item" style="grid-column: span 2;">
+                        <label>🌐 พิกัด (Lat, Long)</label>
+                        <span id="bCoords">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="description-box">
+                <h4>รายละเอียดเพิ่มเติม</h4>
+                <p id="bDesc">กำลังโหลดข้อมูล...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOnvU6c3-EouUDoxzxDSTTEI-siU3d0fo",
+            authDomain: "mykumynature.firebaseapp.com",
+            databaseURL: "https://mykumynature-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "mykumynature",
+            storageBucket: "mykumynature.firebasestorage.app",
+            messagingSenderId: "871727030249",
+            appId: "1:871727030249:web:c0ffea6461c0503765f578",
+            measurementId: "G-BE88SS6HLJ"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const buildingId = urlParams.get('id');
+
+        if (!buildingId) {
+            alert("⚠️ ไม่พบรหัสอาคารเรียน");
+            window.location.href = "./buildings.html";
+        }
+
+        db.ref('buildings/' + buildingId).once('value', (snapshot) => {
+            const b = snapshot.val();
+            if (!b) {
+                alert("⚠️ ไม่พบข้อมูลอาคารเรียนนี้ในระบบ");
+                window.location.href = "./buildings.html";
+                return;
+            }
+
+            document.getElementById("bImg").src = b.image;
+            document.getElementById("bCategory").innerText = b.category;
+            document.getElementById("bName").innerText = b.name;
+            document.getElementById("bScientific").innerText = b.scientific;
+            document.getElementById("bAvgAge").innerText = b.avgAge;
+            document.getElementById("bLocation").innerText = b.location;
+            document.getElementById("bCoords").innerText = b.coords;
+            document.getElementById("bDesc").innerText = b.description || "ไม่มีรายละเอียดเพิ่มเติม";
+            
+            if (b.mapLink) {
+                document.getElementById("bMapBtn").href = b.mapLink;
+            } else {
+                document.getElementById("bMapBtn").style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>
