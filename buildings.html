@@ -23,6 +23,7 @@
         body.dark-mode .plant-card { background: #1e2620; border-color: #2e3b30; color: #e0e6e1; }
         body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
         body.dark-mode input, body.dark-mode textarea, body.dark-mode select { background: #2a352c; border-color: #3e4e40; color: #fff; }
+        body.dark-mode .edit-card-btn, body.dark-mode .delete-btn { background: rgba(30, 38, 32, 0.9); }
 
         header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 15px; }
@@ -33,9 +34,6 @@
 
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
-
-        .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; }
-        .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
         .sidebar.open { left: 0; }
@@ -65,7 +63,7 @@
         .btn-admin-action:hover { background: #236327; }
 
         .plants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .plant-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e5e5e5; transition: 0.2s; display: flex; flex-direction: column; text-decoration: none; color: inherit; position: relative; }
+        .plant-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e5e5e5; transition: 0.2s; display: flex; flex-direction: column; text-decoration: none; color: inherit; position: relative; cursor: pointer; }
         .plant-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
         .plant-img { width: 100%; height: 180px; object-fit: cover; }
         .plant-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
@@ -75,7 +73,12 @@
         .plant-scientific { font-size: 12px; color: #666; font-style: italic; }
         body.dark-mode .plant-scientific { color: #aaa; }
 
-        .btn-del-card { position: absolute; top: 10px; right: 10px; background: rgba(211,47,47,0.9); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: none; font-weight: bold; z-index: 10; }
+        /* ปุ่มแก้ไขและลบการ์ด */
+        .delete-btn, .edit-card-btn { position: absolute; top: 10px; background: rgba(255, 255, 255, 0.9); border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 15px; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 10; }
+        .delete-btn { right: 10px; color: #d32f2f; }
+        .edit-card-btn { right: 50px; color: #f57c00; }
+        .delete-btn:hover { background: #d32f2f; color: white; }
+        .edit-card-btn:hover { background: #f57c00; color: white; }
 
         .admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
         .admin-modal-content { background: white; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
@@ -83,10 +86,19 @@
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #2e7d32; }
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
-        .btn-submit { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .modal-actions-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-submit { flex: 1; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { background: #236327; }
+        .btn-draft-submit { background: #f57c00; }
+        .btn-draft-submit:hover { background: #e65100; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
         .overlay.active { display: block; }
+
+        @media (max-width: 600px) {
+            .modal-actions-row { flex-direction: column; }
+        }
     </style>
 </head>
 
@@ -146,51 +158,57 @@
         </div>
     </main>
 
-    <!-- Modal เพิ่มอาคารเรียน -->
+    <!-- Modal เพิ่ม/แก้ไขอาคารเรียน -->
     <div class="admin-modal" id="buildingModal">
         <div class="admin-modal-content">
             <div class="modal-header">
-                <h2>🏛️ เพิ่มข้อมูลอาคารเรียน</h2>
+                <h2 id="modalBuildingTitle">🏛️ เพิ่มข้อมูลอาคารเรียน</h2>
                 <button class="sidebar-close" onclick="closeBuildingModal()">✕</button>
             </div>
-            <form onsubmit="saveBuildingData(event)">
+            <form id="buildingForm" onsubmit="saveBuildingData(event, false)">
+                <input type="hidden" id="editingBuildingId" value="">
+                
                 <div class="form-group">
                     <label>ชื่ออาคาร</label>
-                    <input type="text" id="bName" placeholder="เช่น อาคารเรียนรวม 1" required>
+                    <input type="text" id="bName" placeholder="เช่น อาคารเรียนรวม 1">
                 </div>
                 <div class="form-group">
                     <label>รหัส/ชื่อย่ออาคาร (ภาษาอังกฤษ/ชื่อย่อ)</label>
-                    <input type="text" id="bScientific" placeholder="เช่น SC1 หรือ Lecture Building 1" required>
+                    <input type="text" id="bScientific" placeholder="เช่น SC1 หรือ Lecture Building 1">
                 </div>
                 <div class="form-group">
                     <label>หมวดหมู่ / ประเภทอาคาร</label>
-                    <input type="text" id="bCategory" placeholder="เช่น อาคารเรียนรวม / คณะวิทยาศาสตร์" required>
+                    <input type="text" id="bCategory" placeholder="เช่น อาคารเรียนรวม / คณะวิทยาศาสตร์">
                 </div>
                 <div class="form-group">
                     <label>ลิงก์รูปภาพอาคาร (Google Drive Link)</label>
-                    <input type="text" id="bImage" placeholder="https://lh3.googleusercontent.com/d/..." required>
+                    <input type="text" id="bImage" placeholder="https://lh3.googleusercontent.com/d/...">
                 </div>
                 <div class="form-group">
                     <label>ลิงก์ Google Map (สำหรับนำทาง)</label>
-                    <input type="text" id="bMapLink" placeholder="https://maps.app.goo.gl/..." required>
+                    <input type="text" id="bMapLink" placeholder="https://maps.app.goo.gl/...">
                 </div>
                 <div class="form-group">
                     <label>ปีที่สร้าง / อายุอาคาร</label>
-                    <input type="text" id="bAvgAge" placeholder="เช่น 15 ปี (สร้างพ.ศ. 2554)" required>
+                    <input type="text" id="bAvgAge" placeholder="เช่น 15 ปี (สร้างพ.ศ. 2554)">
                 </div>
                 <div class="form-group">
                     <label>จุดเด่น / บริเวณที่ตั้ง</label>
-                    <input type="text" id="bLocation" placeholder="เช่น ใกล้หอสมุดกลาง" required>
+                    <input type="text" id="bLocation" placeholder="เช่น ใกล้หอสมุดกลาง">
                 </div>
                 <div class="form-group">
                     <label>พิกัด (Lat, Long)</label>
-                    <input type="text" id="bCoords" placeholder="17.28824° N, 104.108397° E" required>
+                    <input type="text" id="bCoords" placeholder="17.28824° N, 104.108397° E">
                 </div>
                 <div class="form-group">
                     <label>รายละเอียดเพิ่มเติม</label>
                     <textarea id="bDesc" rows="3" placeholder="รายละเอียดห้องเรียน ภาควิชา หรือสิ่งอำนวยความสะดวก..."></textarea>
                 </div>
-                <button type="submit" class="btn-submit">💾 บันทึกการ์ดอาคาร</button>
+                
+                <div class="modal-actions-row">
+                    <button type="button" class="btn-submit btn-draft-submit" onclick="saveBuildingData(event, true)">⚡ บันทึกได้เลย (ไม่บังคับครบ)</button>
+                    <button type="submit" class="btn-submit" id="btnSubmitBuilding">💾 บันทึกการ์ดอาคาร</button>
+                </div>
             </form>
         </div>
     </div>
@@ -210,6 +228,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let currentUser = null;
+        let allBuildingsData = [];
 
         function checkUserSession() {
             const savedUser = localStorage.getItem("ku_user");
@@ -238,6 +257,7 @@
                 const data = snapshot.val();
                 const grid = document.getElementById("buildingsGrid");
                 grid.innerHTML = "";
+                allBuildingsData = [];
 
                 if (!data) {
                     grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #777; padding: 40px;">🏛️ ยังไม่มีข้อมูลอาคารเรียนในระบบ</p>`;
@@ -245,22 +265,29 @@
                 }
 
                 Object.values(data).forEach(b => {
-                    const card = document.createElement("a");
+                    allBuildingsData.push(b);
+                    const card = document.createElement("div");
                     card.className = "plant-card";
-                    card.href = `./building-detail.html?id=${b.id}`;
+                    card.onclick = (e) => {
+                        // ถ้าไม่ได้คลิกโดนปุ่มแก้ไขหรือลบ ให้เปิดหน้าแสดงรายละเอียด
+                        if (!e.target.classList.contains('delete-btn') && !e.target.classList.contains('edit-card-btn')) {
+                            window.location.href = `./building-detail.html?id=${b.id}`;
+                        }
+                    };
 
-                    const adminDelBtn = (currentUser && currentUser.role === 'admin')
-                        ? `<button class="btn-del-card" onclick="event.preventDefault(); deleteBuilding('${b.id}')">✕</button>`
-                        : '';
+                    const isAdmin = (currentUser && currentUser.role === 'admin');
+                    const adminDelBtn = isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteBuilding('${b.id}', '${b.name}')" style="display:flex;">🗑️</button>` : '';
+                    const adminEditBtn = isAdmin ? `<button class="edit-card-btn" onclick="event.stopPropagation(); editBuildingCard('${b.id}')" style="display:flex;">✏️</button>` : '';
 
                     card.innerHTML = `
                         ${adminDelBtn}
+                        ${adminEditBtn}
                         <img class="plant-img" src="${b.image}" alt="${b.name}">
                         <div class="plant-card-body">
                             <div>
-                                <span class="plant-category">${b.category}</span>
+                                <span class="plant-category">${b.category || 'อาคารทั่วไป'}</span>
                                 <div class="plant-name">${b.name}</div>
-                                <div class="plant-scientific">${b.scientific}</div>
+                                <div class="plant-scientific">${b.scientific || ''}</div>
                             </div>
                         </div>
                     `;
@@ -269,36 +296,89 @@
             });
         }
 
-        function openBuildingModal() { document.getElementById("buildingModal").style.display = "flex"; }
-        function closeBuildingModal() { document.getElementById("buildingModal").style.display = "none"; }
+        function openBuildingModal() {
+            document.getElementById("editingBuildingId").value = "";
+            document.getElementById("buildingForm").reset();
+            document.getElementById("modalBuildingTitle").innerText = "🏛️ เพิ่มข้อมูลอาคารเรียน";
+            document.getElementById("btnSubmitBuilding").innerText = "💾 บันทึกการ์ดอาคาร";
+            document.getElementById("buildingModal").style.display = "flex";
+        }
 
-        function saveBuildingData(e) {
-            e.preventDefault();
-            const newRef = db.ref('buildings').push();
-            const buildingId = newRef.key;
+        function closeBuildingModal() { 
+            document.getElementById("buildingModal").style.display = "none"; 
+        }
 
-            const newBuilding = {
+        function editBuildingCard(buildingId) {
+            const b = allBuildingsData.find(item => item.id === buildingId);
+            if (!b) return;
+
+            document.getElementById("editingBuildingId").value = b.id;
+            document.getElementById("bName").value = b.name || "";
+            document.getElementById("bScientific").value = b.scientific || "";
+            document.getElementById("bCategory").value = b.category || "";
+            document.getElementById("bImage").value = b.image || "";
+            document.getElementById("bMapLink").value = b.mapLink || "";
+            document.getElementById("bAvgAge").value = b.avgAge || "";
+            document.getElementById("bLocation").value = b.location || "";
+            document.getElementById("bCoords").value = b.coords || "";
+            document.getElementById("bDesc").value = b.description || "";
+
+            document.getElementById("modalBuildingTitle").innerText = `✏️ แก้ไขข้อมูลอาคาร (${b.name})`;
+            document.getElementById("btnSubmitBuilding").innerText = "💾 บันทึกการแก้ไข";
+            document.getElementById("buildingModal").style.display = "flex";
+        }
+
+        function saveBuildingData(e, isDraftMode = false) {
+            if (e) e.preventDefault();
+
+            const nameVal = document.getElementById("bName").value.trim();
+            if (!isDraftMode && !nameVal) {
+                alert("⚠️ กรุณากรอกชื่ออาคารด้วยครับ");
+                return;
+            }
+
+            const defaultImg = "https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy";
+            const editingId = document.getElementById("editingBuildingId").value;
+            
+            let targetRef;
+            let buildingId;
+
+            if (editingId) {
+                buildingId = editingId;
+                targetRef = db.ref('buildings/' + buildingId);
+            } else {
+                targetRef = db.ref('buildings').push();
+                buildingId = targetRef.key;
+            }
+
+            const buildingData = {
                 id: buildingId,
-                name: document.getElementById("bName").value.trim(),
-                scientific: document.getElementById("bScientific").value.trim(),
-                category: document.getElementById("bCategory").value.trim(),
-                image: convertGoogleDriveUrl(document.getElementById("bImage").value.trim()),
-                mapLink: document.getElementById("bMapLink").value.trim(),
-                avgAge: document.getElementById("bAvgAge").value.trim(),
-                location: document.getElementById("bLocation").value.trim(),
-                coords: document.getElementById("bCoords").value.trim(),
-                description: document.getElementById("bDesc").value.trim()
+                name: nameVal || "ยังไม่ระบุชื่ออาคาร",
+                scientific: document.getElementById("bScientific").value.trim() || "-",
+                category: document.getElementById("bCategory").value.trim() || "อาคารทั่วไป",
+                image: convertGoogleDriveUrl(document.getElementById("bImage").value.trim()) || defaultImg,
+                mapLink: document.getElementById("bMapLink").value.trim() || "",
+                avgAge: document.getElementById("bAvgAge").value.trim() || "-",
+                location: document.getElementById("bLocation").value.trim() || "ภายในมหาวิทยาลัย",
+                coords: document.getElementById("bCoords").value.trim() || "-",
+                description: document.getElementById("bDesc").value.trim() || "ไม่มีรายละเอียดเพิ่มเติม",
+                updatedAt: new Date().toISOString()
             };
 
-            newRef.set(newBuilding).then(() => {
+            targetRef.set(buildingData).then(() => {
                 closeBuildingModal();
-                alert("🎉 บันทึกข้อมูลอาคารเรียนสำเร็จ!");
+                document.getElementById("buildingForm").reset();
+                alert(editingId ? "✅ แก้ไขข้อมูลอาคารเรียนสำเร็จ!" : (isDraftMode ? "⚡ บันทึกร่างข้อมูลอาคารเรียบร้อย!" : "🎉 บันทึกอาคารเรียนใหม่สำเร็จ!"));
+            }).catch((err) => {
+                alert("❌ เกิดข้อผิดพลาดในการบันทึก: " + err.message);
             });
         }
 
-        function deleteBuilding(id) {
-            if (confirm("⚠️ ต้องการลบการ์ดอาคารนี้ใช่หรือไม่?")) {
-                db.ref('buildings/' + id).remove();
+        function deleteBuilding(id, name) {
+            if (confirm(`⚠️ ต้องการลบการ์ดอาคาร "${name || id}" ใช่หรือไม่?`)) {
+                db.ref('buildings/' + id).remove().then(() => {
+                    alert("🗑️ ลบการ์ดอาคารเรียบร้อยแล้ว");
+                });
             }
         }
 
