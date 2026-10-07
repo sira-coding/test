@@ -784,71 +784,77 @@
         /* =========================
            ระบบบัญชีสมาชิก & ดึงข้อมูล
         ========================= */
-        function handleLogin(e) {
-            e.preventDefault();
-            const usernameInput = document.getElementById("loginUsername").value.trim();
-            const passwordInput = document.getElementById("loginPassword").value.trim();
-            const errorMsg = document.getElementById("loginErrorMsg");
-            const btnSubmit = document.getElementById("btnLoginSubmit");
+function handleLogin(e) {
+    e.preventDefault();
+    const usernameInput = document.getElementById("loginUsername").value.trim();
+    const passwordInput = document.getElementById("loginPassword").value.trim();
+    const errorMsg = document.getElementById("loginErrorMsg");
+    const btnSubmit = document.getElementById("btnLoginSubmit");
 
-            if (errorMsg) errorMsg.style.display = "none";
-            btnSubmit.innerText = "⏳ กำลังตรวจสอบ...";
-            btnSubmit.disabled = true;
+    if (errorMsg) errorMsg.style.display = "none";
 
-            // ตรวจสอบชื่อผู้ใช้และรหัสผ่านจากโหนด users ใน Firebase Realtime Database
-            db.ref('users/' + usernameInput).once('value', (snapshot) => {
-                const userData = snapshot.val();
+    // 🌟 ดักเช็กแอดมินพิเศษแบบ Hardcode ไว้สำรอง
+    if (usernameInput === "admin123" && passwordInput === "admin09091") {
+        currentUser = {
+            username: "admin123",
+            fullName: "แอดมิน (Admin)",
+            role: "admin",
+            avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin123"
+        };
+        localStorage.setItem("ku_user", JSON.stringify(currentUser));
+        updateUserUI();
+        closeAuthModal();
+        syncInbox();
+        alert(`👋 ยินดีต้อนรับคุณ ${currentUser.fullName}`);
+        return;
+    }
 
-                btnSubmit.innerText = "🔓 เข้าสู่ระบบ";
-                btnSubmit.disabled = false;
+    btnSubmit.innerText = "⏳ กำลังตรวจสอบ...";
+    btnSubmit.disabled = true;
 
-                // 1. กรณีไม่พบชื่อผู้ใช้
-                if (!userData) {
-                    if (errorMsg) {
-                        errorMsg.innerText = "❌ ไม่พบชื่อผู้ใช้นี้ในระบบ กรุณาตรวจสอบอีกครั้ง";
-                        errorMsg.style.display = "block";
-                    } else {
-                        alert("❌ ไม่พบชื่อผู้ใช้นี้ในระบบ");
-                    }
-                    return;
-                }
+    // ตรวจสอบกับ Firebase สำหรับสมาชิกทั่วไป
+    db.ref('users/' + usernameInput).once('value', (snapshot) => {
+        const userData = snapshot.val();
+        btnSubmit.innerText = "🔓 เข้าสู่ระบบ";
+        btnSubmit.disabled = false;
 
-                // 2. รหัสผ่านไม่ตรงกัน
-                if (userData.password !== passwordInput) {
-                    if (errorMsg) {
-                        errorMsg.innerText = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
-                        errorMsg.style.display = "block";
-                    } else {
-                        alert("❌ รหัสผ่านไม่ถูกต้อง");
-                    }
-                    return;
-                }
-
-                // 3. ข้อมูลถูกต้องตรงกัน -> บันทึกข้อมูลและสิทธิ์ role จากฐานข้อมูล
-                currentUser = {
-                    username: usernameInput,
-                    fullName: userData.fullName || usernameInput,
-                    role: userData.role || 'user',
-                    avatar: userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`
-                };
-
-                localStorage.setItem("ku_user", JSON.stringify(currentUser));
-                updateUserUI();
-                closeAuthModal();
-                syncInbox();
-                alert(`👋 ยินดีต้อนรับคุณ ${currentUser.fullName}`);
-            }, (err) => {
-                btnSubmit.innerText = "🔓 เข้าสู่ระบบ";
-                btnSubmit.disabled = false;
-                if (errorMsg) {
-                    errorMsg.innerText = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
-                    errorMsg.style.display = "block";
-                } else {
-                    alert("⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
-                }
-            });
+        if (!userData) {
+            if (errorMsg) {
+                errorMsg.innerText = "❌ ไม่พบชื่อผู้ใช้นี้ในระบบ กรุณาตรวจสอบอีกครั้ง";
+                errorMsg.style.display = "block";
+            }
+            return;
         }
 
+        if (userData.password !== passwordInput) {
+            if (errorMsg) {
+                errorMsg.innerText = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+                errorMsg.style.display = "block";
+            }
+            return;
+        }
+
+        currentUser = {
+            username: usernameInput,
+            fullName: userData.fullName || usernameInput,
+            role: userData.role || 'user',
+            avatar: userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`
+        };
+
+        localStorage.setItem("ku_user", JSON.stringify(currentUser));
+        updateUserUI();
+        closeAuthModal();
+        syncInbox();
+        alert(`👋 ยินดีต้อนรับคุณ ${currentUser.fullName}`);
+    }, (err) => {
+        btnSubmit.innerText = "🔓 เข้าสู่ระบบ";
+        btnSubmit.disabled = false;
+        if (errorMsg) {
+            errorMsg.innerText = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล (เช็ก Firebase Rules)";
+            errorMsg.style.display = "block";
+        }
+    });
+}
         function checkUserSession() {
             const savedUser = localStorage.getItem("ku_user");
             if (savedUser) currentUser = JSON.parse(savedUser);
