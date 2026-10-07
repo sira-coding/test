@@ -1,49 +1,91 @@
-function handleLoginSubmit(e) {
-    e.preventDefault();
-    const usernameInput = document.getElementById("loginUsername").value.trim();
-    const passwordInput = document.getElementById("loginPassword").value.trim();
-    const errorMsg = document.getElementById("loginErrorMsg");
+<!DOCTYPE html>
+<html lang="th">
 
-    if (errorMsg) errorMsg.style.display = "none";
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nature Library - My KU My Nature</title>
 
-    // ดึงข้อมูลผู้ใช้จากโหนด users/{username} ใน Firebase
-    db.ref('users/' + usernameInput).once('value', (snapshot) => {
-        const userData = snapshot.val();
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        // 1. ตรวจสอบว่ามีชื่อผู้ใช้นี้ในฐานข้อมูลหรือไม่
-        if (!userData) {
-            if (errorMsg) {
-                errorMsg.innerText = "❌ ไม่พบชื่อผู้ใช้นี้ในระบบ กรุณาลงทะเบียนก่อนครับ";
-                errorMsg.style.display = "block";
-            } else {
-                alert("❌ ไม่พบชื่อผู้ใช้นี้ในระบบ กรุณาลงทะเบียนก่อนครับ");
-            }
-            return;
-        }
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-        // 2. ตรวจสอบว่ารหัสผ่านตรงกับในฐานข้อมูลหรือไม่
-        if (userData.password !== passwordInput) {
-            if (errorMsg) {
-                errorMsg.innerText = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
-                errorMsg.style.display = "block";
-            } else {
-                alert("❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
-            }
-            return;
-        }
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f8f4; color: #263528; transition: background 0.3s, color 0.3s; }
+        body.dark-mode { background: #121813; color: #e0e6e1; }
+        body.dark-mode header, body.dark-mode .sidebar { background: #1e2620; border-color: #2e3b30; }
+        body.dark-mode .search, body.dark-mode .category { background: #2a352c; border-color: #3e4e40; color: #ffffff; }
+        body.dark-mode .plant-card { background: #1e2620; }
+        body.dark-mode .sidebar a { color: #e0e6e1; }
+        body.dark-mode .sidebar a:hover, body.dark-mode .sidebar a.active { background: #2a352c; color: #81c784; }
+        body.dark-mode .fav-btn, body.dark-mode .delete-btn, body.dark-mode .edit-card-btn { background: rgba(30, 38, 32, 0.9); }
+        body.dark-mode .logo-text { color: #81c784 !important; }
+        body.dark-mode .admin-modal-content { background: #1e2620; color: #e0e6e1; }
+        body.dark-mode .form-group input, body.dark-mode .form-group textarea, body.dark-mode .form-group select { background: #2a352c; border-color: #3e4e40; color: #fff; }
+        body.dark-mode .btn-get-location, body.dark-mode .btn-ai-search, body.dark-mode .btn-add-coord { background: #2a352c; color: #81c784; border-color: #3e4e40; }
+        body.dark-mode .coord-item { background: #2a352c; border-color: #3e4e40; }
 
-        // 3. ข้อมูลถูกต้องตรงกัน บันทึกสิทธิ์และข้อมูลลงใน LocalStorage
-        const userSession = {
-            username: usernameInput,
-            fullName: userData.fullName || usernameInput,
-            role: userData.role || 'user', // ดึงสิทธิ์แอดมินหรือผู้ใช้ทั่วไปตรงตาม DB
-            avatar: userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`
-        };
+        header { background: white; padding: 14px 5%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .hamburger-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: inherit; padding: 5px; border-radius: 6px; }
+        .header-logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .header-logo-img { height: 38px; width: auto; object-fit: contain; }
+        .logo-text { color: #2e7d32; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
 
-        localStorage.setItem("ku_user", JSON.stringify(userSession));
-        alert(`🎉 ลงชื่อเข้าใช้สำเร็จ! ยินดีต้อนรับคุณ ${userSession.fullName}`);
-        location.reload();
-    }, (error) => {
-        alert("⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อกับฐานข้อมูล");
-    });
-}
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .search { width: 220px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 30px; outline: none; font-size: 14px; }
+        .theme-toggle { background: #f0f4f1; border: 1px solid #ccc; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; }
+
+        .inbox-btn { position: relative; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 50px; padding: 8px 14px; font-size: 15px; cursor: pointer; color: #2e7d32; font-weight: bold; }
+        .inbox-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; box-shadow: 4px 0 25px rgba(0,0,0,0.15); transition: left 0.3s ease; z-index: 1000; padding: 25px 20px; overflow-y: auto; }
+        .sidebar.open { left: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .sidebar-close { background: none; border: none; font-size: 22px; cursor: pointer; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 10px; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #263528; text-decoration: none; font-size: 15px; font-weight: bold; border-radius: 12px; transition: 0.2s; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f5e9; color: #2e7d32; }
+        .menu-divider { height: 1px; background: #eee; margin: 15px 0; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px); }
+        .overlay.active { display: block; }
+
+        .user-profile-box { background: #e8f5e9; padding: 16px; border-radius: 16px; margin-bottom: 15px; text-align: center; }
+        body.dark-mode .user-profile-box { background: #2a352c; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; border: 2px solid #2e7d32; display: block; }
+        .user-profile-name { font-weight: bold; color: #2e7d32; font-size: 15px; margin-bottom: 2px; }
+        body.dark-mode .user-profile-name { color: #81c784; }
+        .user-role-badge { font-size: 11px; color: #666; margin-bottom: 10px; }
+        body.dark-mode .user-role-badge { color: #aaa; }
+        .profile-btn-group { display: flex; gap: 6px; justify-content: center; }
+        .btn-logout { background: #d32f2f; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-weight: bold; }
+
+        main { max-width: 1200px; margin: auto; padding: 35px 25px; }
+        .heading h1 { font-size: 32px; margin-bottom: 6px; }
+        .heading p { color: #718071; font-size: 15px; }
+        .categories { display: flex; gap: 10px; overflow-x: auto; margin: 25px 0; padding-bottom: 5px; }
+        .category { border: none; background: white; padding: 10px 18px; border-radius: 30px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+        .category.active { background: #2e7d32; color: white; }
+
+        .plant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; }
+        .plant-card { background: white; border-radius: 18px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.06); transition: 0.3s; position: relative; }
+        .plant-card:hover { transform: translateY(-5px); }
+        .plant-image { width: 100%; height: 200px; object-fit: cover; }
+        .plant-info { padding: 16px; }
+        .plant-name { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+        .scientific { font-size: 13px; color: #718071; font-style: italic; }
+        .type { display: inline-block; margin-top: 10px; padding: 4px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 12px; }
+
+        .fav-btn, .delete-btn, .edit-card-btn { position: absolute; top: 12px; background: rgba(255, 255, 255, 0.85); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); backdrop-filter: blur(4px); transition: 0.2s; z-index: 5; }
+        .fav-btn { right: 12px; }
+        .edit-card-btn { right: 54px; color: #f57c00; display: none; }
+        .delete-btn { right: 96px; color: #d32f2f; display: none; }
+
+        #mapSection { display: none; }
+        #map { width: 100%; height: 550px; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
