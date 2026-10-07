@@ -1,193 +1,133 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="My KU My Nature - สำรวจและเรียนรู้ธรรมชาติภายในมหาวิทยาลัยเกษตรศาสตร์">
-    <title>My KU My Nature</title>
+    <title>เข้าสู่ระบบ - My KU My Nature</title>
 
-    <!-- ใส่ Favicon บนแท็บเบราว์เซอร์ -->
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy">
 
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f8f4; color: #263528; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        
+        .login-card { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; border: 1px solid #e0e0e0; }
+        .logo-img { height: 60px; width: auto; margin-bottom: 15px; }
+        .login-title { font-size: 22px; color: #2e7d32; font-weight: bold; margin-bottom: 5px; }
+        .login-subtitle { font-size: 13px; color: #666; margin-bottom: 25px; }
 
-        body {
-            font-family: Arial, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            transition: background 0.3s, color 0.3s;
-        }
+        .form-group { text-align: left; margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #2e7d32; }
+        .form-group input { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 12px; font-size: 14px; outline: none; transition: 0.2s; }
+        .form-group input:focus { border-color: #2e7d32; box-shadow: 0 0 0 3px rgba(46,125,50,0.15); }
 
-        /* Dark Mode CSS */
-        body.dark-mode .welcome {
-            background-image:
-                linear-gradient(
-                    rgba(0, 0, 0, 0.65),
-                    rgba(0, 0, 0, 0.85)
-                ),
-                url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e");
-        }
+        .btn-login { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; box-shadow: 0 4px 15px rgba(46,125,50,0.25); }
+        .btn-login:hover { background: #236327; }
 
-        body.dark-mode .start-button {
-            background: #2e7d32;
-            color: white;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-        }
-
-        body.dark-mode .theme-toggle-top {
-            background: rgba(30, 38, 32, 0.8);
-            border-color: #3e4e40;
-            color: #ffeb3b;
-        }
-
-        /* Welcome Section */
-        .welcome {
-            width: 100%;
-            height: 100vh;
-            background-image:
-                linear-gradient(
-                    rgba(0, 0, 0, 0.35),
-                    rgba(0, 0, 0, 0.55)
-                ),
-                url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e");
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
-            position: relative;
-        }
-
-        .content {
-            padding: 30px;
-            animation: fadeIn 1.5s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* ปรับสไตล์รูปโลโก้ให้พอดี */
-        .site-logo {
-            width: 120px;
-            height: auto;
-            margin-bottom: 20px;
-            filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
-        }
-
-        .title {
-            font-size: 42px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .subtitle {
-            font-size: 18px;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-
-        .start-button {
-            border: none;
-            padding: 16px 38px;
-            border-radius: 50px;
-            background: white;
-            color: #2e7d32;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-            user-select: none;
-        }
-
-        .start-button:hover {
-            transform: scale(1.05);
-        }
-
-        .theme-toggle-top {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid #ccc;
-            border-radius: 50px;
-            padding: 10px 16px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-            backdrop-filter: blur(5px);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .site-logo { width: 90px; }
-            .title { font-size: 30px; }
-            .subtitle { font-size: 16px; }
-            .start-button { font-size: 16px; padding: 14px 32px; }
-        }
+        .error-msg { color: #d32f2f; font-size: 13px; margin-top: 15px; display: none; font-weight: bold; }
     </style>
 </head>
+
 <body>
 
-    <section class="welcome">
-        <button class="theme-toggle-top" id="themeToggleBtn" onclick="toggleDarkMode()">🌙</button>
+    <div class="login-card">
+        <img src="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy" alt="KU Nature Logo" class="logo-img">
+        <div class="login-title">MY KU MY NATURE</div>
+        <div class="login-subtitle">ลงชื่อเข้าใช้งานระบบคลังข้อมูลธรรมชาติ</div>
 
-        <div class="content">
-            <!-- แสดงรูปโลโก้อย่างเดียว โดดเด่น สวยงาม -->
-            <img src="https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy" alt="KU Nature Logo" class="site-logo">
-            
-            <h1 class="title">MY KU MY NATURE</h1>
-            <p class="subtitle">Discover • Learn • Experience Nature</p>
-            
-            <button class="start-button" onclick="startExplore()">
-                เริ่มสำรวจ 🌱
-            </button>
-        </div>
-    </section>
+        <form onsubmit="handleStrictLogin(event)">
+            <div class="form-group">
+                <label>ชื่อผู้ใช้งาน (Username)</label>
+                <input type="text" id="loginUsername" placeholder="กรอกชื่อผู้ใช้ของคุณ" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label>รหัสผ่าน (Password)</label>
+                <input type="password" id="loginPassword" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-login" id="btnLoginSubmit">เข้าสู่ระบบ ➔</button>
+            <div class="error-msg" id="loginErrorMsg">⚠️ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!</div>
+        </form>
+    </div>
 
     <script>
-        function startExplore() {
-            window.location.href = "./library.html";
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOnvU6c3-EouUDoxzxDSTTEI-siU3d0fo",
+            authDomain: "mykumynature.firebaseapp.com",
+            databaseURL: "https://mykumynature-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "mykumynature",
+            storageBucket: "mykumynature.firebasestorage.app",
+            messagingSenderId: "871727030249",
+            appId: "1:871727030249:web:c0ffea6461c0503765f578",
+            measurementId: "G-BE88SS6HLJ"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function handleStrictLogin(e) {
+            e.preventDefault();
+            
+            const usernameInput = document.getElementById("loginUsername").value.trim();
+            const passwordInput = document.getElementById("loginPassword").value.trim();
+            const errorMsg = document.getElementById("loginErrorMsg");
+            const btnSubmit = document.getElementById("btnLoginSubmit");
+
+            errorMsg.style.display = "none";
+            btnSubmit.innerText = "⏳ กำลังตรวจสอบข้อมูล...";
+            btnSubmit.disabled = true;
+
+            // ตรวจสอบข้อมูลจาก Firebase Database โหนด users/{username}
+            db.ref('users/' + usernameInput).once('value', (snapshot) => {
+                const userData = snapshot.val();
+                
+                btnSubmit.innerText = "เข้าสู่ระบบ ➔";
+                btnSubmit.disabled = false;
+
+                // 1. ถ้าไม่มีบัญชีนี้ในฐานข้อมูล
+                if (!userData) {
+                    errorMsg.innerText = "❌ ไม่พบชื่อผู้ใช้นี้ในระบบ กรุณาตรวจสอบอีกครั้ง";
+                    errorMsg.style.display = "block";
+                    return;
+                }
+
+                // 2. ถ้ามีบัญชีแต่รหัสผ่านไม่ตรงกัน
+                if (userData.password !== passwordInput) {
+                    errorMsg.innerText = "❌ รหัสผ่านไม่ถูกต้อง!";
+                    errorMsg.style.display = "block";
+                    return;
+                }
+
+                // 3. ยืนยันถูกต้อง บันทึก Session และสิทธิ์ (Role) ลง LocalStorage
+                const userSession = {
+                    username: usernameInput,
+                    fullName: userData.fullName || usernameInput,
+                    role: userData.role || 'user', // ดึงสิทธิ์ admin/user จาก DB โดยตรง
+                    avatar: userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`
+                };
+
+                localStorage.setItem("ku_user", JSON.stringify(userSession));
+                
+                // ย้ายไปยังหน้าคลังธรรมชาติ
+                window.location.href = "./library.html";
+            }, (error) => {
+                btnSubmit.innerText = "เข้าสู่ระบบ ➔";
+                btnSubmit.disabled = false;
+                errorMsg.innerText = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
+                errorMsg.style.display = "block";
+            });
         }
 
-        function toggleDarkMode() {
-            const body = document.body;
-            const btn = document.getElementById("themeToggleBtn");
-            body.classList.toggle("dark-mode");
-            if (body.classList.contains("dark-mode")) {
-                btn.innerHTML = "☀️";
-                localStorage.setItem("theme", "dark");
-            } else {
-                btn.innerHTML = "🌙";
-                localStorage.setItem("theme", "light");
-            }
-        }
-
-        (function checkSavedTheme() {
-            const savedTheme = localStorage.getItem("theme");
-            const btn = document.getElementById("themeToggleBtn");
-            if (savedTheme === "dark") {
-                document.body.classList.add("dark-mode");
-                if(btn) btn.innerHTML = "☀️";
+        // ถ้ามีการเข้าสู่ระบบไว้อยู่แล้ว ให้ข้ามไปหน้า library ทันที
+        (function checkAlreadyLoggedIn() {
+            if (localStorage.getItem("ku_user")) {
+                window.location.href = "./library.html";
             }
         })();
     </script>
