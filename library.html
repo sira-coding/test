@@ -326,14 +326,15 @@
         </div>
     </div>
 
-    <!-- Modal เข้าสู่ระบบ -->
-    <div class="admin-modal" id="authModal">
-        <div class="admin-modal-content">
+    <!-- Modal เข้าสู่ระบบ / สมัครสมาชิก -->
+    <div class="admin-modal" id="authModal" style="display: none;">
+        <div class="admin-modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h2>👤 เข้าสู่ระบบ</h2>
+                <h2 id="authModalTitle">👤 เข้าสู่ระบบ</h2>
                 <button class="sidebar-close" onclick="closeAuthModal()">✕</button>
             </div>
 
+            <!-- ฟอร์มเข้าสู่ระบบ -->
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>ชื่อผู้ใช้ (Username)</label>
@@ -343,8 +344,34 @@
                     <label>รหัสผ่าน (Password)</label>
                     <input type="password" id="loginPassword" placeholder="กรอกรหัสผ่าน" required>
                 </div>
+                <p id="loginErrorMsg" style="color: #d32f2f; font-size: 13px; margin-bottom: 10px; display: none;"></p>
                 <button type="submit" class="btn-submit" id="btnLoginSubmit">🔓 เข้าสู่ระบบ</button>
-                <div class="error-msg" id="loginErrorMsg">❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 13px;">
+                    ยังไม่มีบัญชีสมาชิก? <a href="#" onclick="switchAuthTab('register')" style="color: #2e7d32; font-weight: bold; text-decoration: none;">สมัครสมาชิกที่นี่</a>
+                </div>
+            </form>
+
+            <!-- ฟอร์มสมัครสมาชิก -->
+            <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+                <div class="form-group">
+                    <label>ชื่อ-นามสกุล หรือชื่อแสดงผล</label>
+                    <input type="text" id="regFullName" placeholder="เช่น สมชาย ใจดี" required>
+                </div>
+                <div class="form-group">
+                    <label>ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="regUsername" placeholder="ตั้งชื่อผู้ใช้ (ภาษาอังกฤษ/ตัวเลข)" required>
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน (Password)</label>
+                    <input type="password" id="regPassword" placeholder="ตั้งรหัสผ่าน" required>
+                </div>
+                <p id="regErrorMsg" style="color: #d32f2f; font-size: 13px; margin-bottom: 10px; display: none;"></p>
+                <button type="submit" class="btn-submit" id="btnRegisterSubmit" style="background: #1b5e20;">✨ ลงทะเบียนสมัครสมาชิก</button>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 13px;">
+                    มีบัญชีอยู่แล้ว? <a href="#" onclick="switchAuthTab('login')" style="color: #2e7d32; font-weight: bold; text-decoration: none;">เข้าสู่ระบบ</a>
+                </div>
             </form>
         </div>
     </div>
@@ -375,6 +402,95 @@
             const timestamp = Date.now().toString().slice(-6);
             const randomNum = Math.floor(Math.random() * 90 + 10);
             return `KU${timestamp}${randomNum}`;
+        }
+
+        /* =========================
+           ฟังก์ชันจัดการ Modal เข้าสู่ระบบ / สมัครสมาชิก
+        ========================= */
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById("loginForm");
+            const regForm = document.getElementById("registerForm");
+            const modalTitle = document.getElementById("authModalTitle");
+            
+            const loginErr = document.getElementById("loginErrorMsg");
+            const regErr = document.getElementById("regErrorMsg");
+            if (loginErr) loginErr.style.display = "none";
+            if (regErr) regErr.style.display = "none";
+
+            if (tab === 'register') {
+                loginForm.style.display = "none";
+                regForm.style.display = "block";
+                modalTitle.innerText = "📝 สมัครสมาชิก";
+            } else {
+                loginForm.style.display = "block";
+                regForm.style.display = "none";
+                modalTitle.innerText = "👤 เข้าสู่ระบบ";
+            }
+        }
+
+        function openAuthModal(tab = 'login') { 
+            switchAuthTab(tab);
+            document.getElementById("authModal").style.display = "flex"; 
+        }
+
+        function closeAuthModal() { document.getElementById("authModal").style.display = "none"; }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const fullName = document.getElementById("regFullName").value.trim();
+            const username = document.getElementById("regUsername").value.trim().toLowerCase();
+            const password = document.getElementById("regPassword").value.trim();
+            const errorMsg = document.getElementById("regErrorMsg");
+            const btnSubmit = document.getElementById("btnRegisterSubmit");
+
+            if (!username || !password || !fullName) return;
+
+            btnSubmit.innerText = "⏳ กำลังบันทึกข้อมูล...";
+            btnSubmit.disabled = true;
+
+            db.ref('users/' + username).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    btnSubmit.innerText = "✨ ลงทะเบียนสมัครสมาชิก";
+                    btnSubmit.disabled = false;
+                    errorMsg.innerText = "❌ ชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น";
+                    errorMsg.style.display = "block";
+                    return;
+                }
+
+                const randomAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+
+                const newUser = {
+                    username: username,
+                    fullName: fullName,
+                    password: password,
+                    role: 'user',
+                    avatar: randomAvatar,
+                    createdAt: new Date().toISOString()
+                };
+
+                db.ref('users/' + username).set(newUser).then(() => {
+                    btnSubmit.innerText = "✨ ลงทะเบียนสมัครสมาชิก";
+                    btnSubmit.disabled = false;
+
+                    currentUser = {
+                        username: username,
+                        fullName: fullName,
+                        role: 'user',
+                        avatar: randomAvatar
+                    };
+
+                    localStorage.setItem("ku_user", JSON.stringify(currentUser));
+                    updateUserUI();
+                    closeAuthModal();
+                    syncInbox();
+                    alert(`🎉 สมัครสมาชิกสำเร็จ! ยินดีต้อนรับคุณ ${fullName}`);
+                }).catch(err => {
+                    btnSubmit.innerText = "✨ ลงทะเบียนสมัครสมาชิก";
+                    btnSubmit.disabled = false;
+                    errorMsg.innerText = "❌ เกิดข้อผิดพลาด: " + err.message;
+                    errorMsg.style.display = "block";
+                });
+            });
         }
 
         /* =========================
@@ -614,7 +730,7 @@
         }
 
         /* =========================
-           ระบบ Inbox & แจ้งเตือน (นับเฉพาะที่ยังไม่อ่าน + อ่านแล้วลบตัวเลข)
+           ระบบ Inbox & แจ้งเตือน
         ========================= */
         function syncInbox() {
             if (!currentUser) return;
@@ -725,343 +841,4 @@
                 if (!item) return;
 
                 const newPlantId = generateNextPlantId();
-                const defaultImg = "https://lh3.googleusercontent.com/d/1KBBm8ycOHwkVl7OAXx009_AhLFFK5Fzy";
-                const locations = item.locations || [{ lat: 17.2882, lng: 104.1123 }];
-
-                db.ref(`plants/${newPlantId}`).set({
-                    id: newPlantId,
-                    name: item.name,
-                    scientific: item.scientific,
-                    type: item.category,
-                    category: item.category,
-                    family: item.family,
-                    avgAge: item.avgAge,
-                    location: item.location,
-                    coordinates: `${locations[0].lat}° N, ${locations[0].lng}° E`,
-                    lat: locations[0].lat,
-                    lng: locations[0].lng,
-                    locations: locations,
-                    icon: item.icon,
-                    image: defaultImg,
-                    panoramaImage: defaultImg,
-                    description: item.description,
-                    createdBy: item.userName
-                }).then(() => {
-                    db.ref(`pending_plants/${pendingId}`).remove();
-                    db.ref(`user_notifications/${item.userId}`).push().set({
-                        title: "🎉 การเสนอพืชของคุณได้รับการอนุมัติแล้ว!",
-                        message: `พืช "${item.name}" ถูกเพิ่มลงในคลังธรรมชาติเรียบร้อยแล้ว พร้อมโชว์เครดิตผู้ค้นพบชื่อคุณ`,
-                        status: "approved",
-                        isRead: false,
-                        createdAt: new Date().toISOString()
-                    });
-                    alert("✅ อนุมัติเรียบร้อย!");
-                    openInboxModal();
-                });
-            });
-        }
-
-        function rejectPlant(pendingId, userId, plantName) {
-            const reason = prompt(`กรุณาระบุเหตุผลที่ไม่ผ่านการอนุมัติสำหรับ "${plantName}":`);
-            if (reason === null) return;
-
-            const fillReason = reason.trim() || 'ข้อมูลไม่สมบูรณ์หรือไม่ผ่านเกณฑ์การตรวจสอบ';
-
-            db.ref(`pending_plants/${pendingId}`).remove().then(() => {
-                db.ref(`user_notifications/${userId}`).push().set({
-                    title: "❌ การเสนอพืชของคุณไม่ผ่านการอนุมัติ",
-                    message: `การเสนอพืช "${plantName}" ไม่ผ่านการอนุมัติ เนื่องจาก: ${fillReason}`,
-                    status: "rejected",
-                    isRead: false,
-                    createdAt: new Date().toISOString()
-                }).then(() => {
-                    alert("❌ ปฏิเสธการอนุมัติและส่งเหตุผลแจ้งไปยังผู้ใช้เรียบร้อยแล้ว");
-                    openInboxModal();
-                });
-            }).catch(err => alert("❌ เกิดข้อผิดพลาด: " + err.message));
-        }
-
-        /* =========================
-           ระบบบัญชีสมาชิก & ดึงข้อมูล
-        ========================= */
-function handleLogin(e) {
-    e.preventDefault();
-    const usernameInput = document.getElementById("loginUsername").value.trim();
-    const passwordInput = document.getElementById("loginPassword").value.trim();
-    const errorMsg = document.getElementById("loginErrorMsg");
-    const btnSubmit = document.getElementById("btnLoginSubmit");
-
-    if (errorMsg) errorMsg.style.display = "none";
-
-    // 🌟 ดักเช็กแอดมินพิเศษแบบ Hardcode ไว้สำรอง
-    if (usernameInput === "admin123" && passwordInput === "admin09091") {
-        currentUser = {
-            username: "admin123",
-            fullName: "แอดมิน (Admin)",
-            role: "admin",
-            avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin123"
-        };
-        localStorage.setItem("ku_user", JSON.stringify(currentUser));
-        updateUserUI();
-        closeAuthModal();
-        syncInbox();
-        alert(`👋 ยินดีต้อนรับคุณ ${currentUser.fullName}`);
-        return;
-    }
-
-    btnSubmit.innerText = "⏳ กำลังตรวจสอบ...";
-    btnSubmit.disabled = true;
-
-    // ตรวจสอบกับ Firebase สำหรับสมาชิกทั่วไป
-    db.ref('users/' + usernameInput).once('value', (snapshot) => {
-        const userData = snapshot.val();
-        btnSubmit.innerText = "🔓 เข้าสู่ระบบ";
-        btnSubmit.disabled = false;
-
-        if (!userData) {
-            if (errorMsg) {
-                errorMsg.innerText = "❌ ไม่พบชื่อผู้ใช้นี้ในระบบ กรุณาตรวจสอบอีกครั้ง";
-                errorMsg.style.display = "block";
-            }
-            return;
-        }
-
-        if (userData.password !== passwordInput) {
-            if (errorMsg) {
-                errorMsg.innerText = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
-                errorMsg.style.display = "block";
-            }
-            return;
-        }
-
-        currentUser = {
-            username: usernameInput,
-            fullName: userData.fullName || usernameInput,
-            role: userData.role || 'user',
-            avatar: userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`
-        };
-
-        localStorage.setItem("ku_user", JSON.stringify(currentUser));
-        updateUserUI();
-        closeAuthModal();
-        syncInbox();
-        alert(`👋 ยินดีต้อนรับคุณ ${currentUser.fullName}`);
-    }, (err) => {
-        btnSubmit.innerText = "🔓 เข้าสู่ระบบ";
-        btnSubmit.disabled = false;
-        if (errorMsg) {
-            errorMsg.innerText = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล (เช็ก Firebase Rules)";
-            errorMsg.style.display = "block";
-        }
-    });
-}
-        function checkUserSession() {
-            const savedUser = localStorage.getItem("ku_user");
-            if (savedUser) currentUser = JSON.parse(savedUser);
-            updateUserUI();
-            syncInbox();
-        }
-
-        function updateUserUI() {
-            const profileBox = document.getElementById("userProfileBox");
-            const adminAddItem = document.getElementById("adminAddMenuItem");
-            const userMenuItem = document.getElementById("userAuthMenuItem");
-
-            if (currentUser) {
-                profileBox.style.display = "block";
-                document.getElementById("userProfileName").innerText = currentUser.fullName;
-                document.getElementById("userAvatarImg").src = currentUser.avatar;
-                userMenuItem.style.display = "none";
-
-                if (currentUser.role === 'admin') {
-                    document.getElementById("userRoleBadge").innerText = "🔑 ผู้ดูแลระบบ";
-                    adminAddItem.style.display = "block";
-                    document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "flex");
-                } else {
-                    document.getElementById("userRoleBadge").innerText = "👤 สมาชิกทั่วไป";
-                    adminAddItem.style.display = "none";
-                    document.querySelectorAll(".delete-btn, .edit-card-btn").forEach(btn => btn.style.display = "none");
-                }
-            } else {
-                profileBox.style.display = "none";
-                userMenuItem.style.display = "block";
-                adminAddItem.style.display = "none";
-            }
-        }
-
-        function syncRealtimeData() {
-            db.ref('plants').on('value', (snapshot) => {
-                const data = snapshot.val();
-                allPlantsData = data ? Object.values(data) : [];
-                renderPlantCards(allPlantsData);
-                updateFavIcons();
-                if (map !== null) initMap(true);
-            });
-        }
-
-        function renderPlantCards(plants) {
-            const grid = document.getElementById("plantGrid");
-            const emptyMsg = document.getElementById("emptyFavMsg");
-            grid.querySelectorAll('.plant-card').forEach(card => card.remove());
-
-            plants.forEach(plant => {
-                const card = document.createElement('div');
-                card.className = 'plant-card';
-                card.setAttribute('data-id', plant.id);
-                card.setAttribute('data-category', plant.category || plant.type);
-                card.onclick = () => openPlant(plant.id);
-
-                const createdByHtml = plant.createdBy ? `
-                    <div style="font-size: 11px; color: #666; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 6px;">
-                        🔍 <b>ผู้ค้นพบ:</b> ${plant.createdBy}
-                    </div>
-                ` : '';
-
-                card.innerHTML = `
-                    <button class="delete-btn" onclick="deletePlantCard(event, '${plant.id}', '${plant.name}')">🗑️</button>
-                    <button class="edit-card-btn" onclick="editPlantCard(event, '${plant.id}')">✏️</button>
-                    <button class="fav-btn" onclick="toggleFavorite(event, '${plant.id}')">🤍</button>
-                    <img class="plant-image" src="${plant.image}" alt="${plant.name}">
-                    <div class="plant-info">
-                        <div class="plant-name">${plant.name}</div>
-                        <div class="scientific">${plant.scientific}</div>
-                        <span class="type">${plant.type}</span>
-                        ${createdByHtml}
-                    </div>
-                `;
-                grid.insertBefore(card, emptyMsg);
-            });
-
-            updateUserUI();
-            filterPlants();
-        }
-
-        function convertGoogleDriveUrl(url) {
-            if (!url) return "";
-            if (url.includes("lh3.googleusercontent.com/d/")) return url.trim();
-            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);
-            return match ? `https://lh3.googleusercontent.com/d/${match[1] || match[2]}` : url.trim();
-        }
-
-        function getFavorites() { return JSON.parse(localStorage.getItem("ku_favorites") || "[]"); }
-        function toggleFavorite(event, id) {
-            event.stopPropagation();
-            let favs = getFavorites();
-            favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
-            localStorage.setItem("ku_favorites", JSON.stringify(favs));
-            updateFavIcons();
-            if (currentView === 'favorites') filterPlants();
-        }
-
-        function updateFavIcons() {
-            const favs = getFavorites();
-            document.querySelectorAll(".plant-card").forEach(card => {
-                const id = card.getAttribute("data-id");
-                const btn = card.querySelector(".fav-btn");
-                if (btn) btn.innerHTML = favs.includes(id) ? "❤️" : "🤍";
-            });
-        }
-
-        function filterPlants() {
-            let searchInput = document.getElementById("searchInput").value.toLowerCase();
-            let cards = document.querySelectorAll(".plant-card");
-            let favs = getFavorites();
-            let visibleCount = 0;
-
-            cards.forEach(function(card) {
-                let id = card.getAttribute("data-id");
-                let text = card.innerText.toLowerCase();
-                let cardCategory = card.getAttribute("data-category");
-
-                let matchesSearch = text.includes(searchInput);
-                let matchesCategory = (currentCategory === "all") || (cardCategory === currentCategory);
-                let matchesFavorite = (currentView !== 'favorites') || favs.includes(id);
-
-                if (matchesSearch && matchesCategory && matchesFavorite) {
-                    card.style.display = "";
-                    visibleCount++;
-                } else {
-                    card.style.display = "none";
-                }
-            });
-            document.getElementById("emptyFavMsg").style.display = (currentView === 'favorites' && visibleCount === 0) ? "block" : "none";
-        }
-
-        function initMap(forceReload = false) {
-            if (map === null) {
-                map = L.map('map').setView([17.2882, 104.1123], 16);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            }
-
-            if (forceReload) {
-                map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
-            }
-
-            allPlantsData.forEach(plant => {
-                const locations = plant.locations || [{ lat: plant.lat || 17.2882, lng: plant.lng || 104.1123 }];
-                locations.forEach((loc, index) => {
-                    const stickerIcon = L.divIcon({
-                        html: `<div style="font-size: 28px; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); cursor:pointer;">${plant.icon || '🌿'}</div>`,
-                        className: 'custom-sticker-marker',
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
-                    });
-
-                    const marker = L.marker([loc.lat, loc.lng], { icon: stickerIcon }).addTo(map);
-                    marker.bindPopup(`
-                        <div class="map-popup-card" style="text-align:center;">
-                            <img src="${plant.image}" alt="${plant.name}" style="width:100%; height:100px; object-fit:cover; border-radius:8px; margin-bottom:6px;">
-                            <b>${plant.name} (ต้นที่ ${index + 1})</b><br>
-                            <a href="./tree.html?id=${plant.id}" style="display:inline-block; margin-top:6px; background:#2e7d32; color:white; padding:4px 10px; border-radius:12px; font-size:12px; text-decoration:none;">ดูรายละเอียด ➔</a>
-                        </div>
-                    `);
-                });
-            });
-        }
-
-        function openSidebar() { document.getElementById("sidebar").classList.add("open"); document.getElementById("overlay").classList.add("active"); }
-        function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("active"); }
-        function openPlant(id) { window.location.href = "./tree.html?id=" + id; }
-        function openAuthModal() { document.getElementById("authModal").style.display = "flex"; }
-        function closeAuthModal() { document.getElementById("authModal").style.display = "none"; }
-        function logoutUser() { currentUser = null; localStorage.removeItem("ku_user"); location.reload(); }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
-            const isDark = document.body.classList.contains("dark-mode");
-            document.getElementById("themeToggleBtn").innerHTML = isDark ? "☀️" : "🌙";
-            localStorage.setItem("theme", isDark ? "dark" : "light");
-        }
-
-        (function checkSavedTheme() {
-            if (localStorage.getItem("theme") === "dark") {
-                document.body.classList.add("dark-mode");
-                const btn = document.getElementById("themeToggleBtn");
-                if (btn) btn.innerHTML = "☀️";
-            }
-        })();
-
-        function checkUrlViewParam() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const viewParam = urlParams.get('view');
-            if (viewParam === 'favorites' || viewParam === 'map') {
-                switchView(viewParam);
-            }
-        }
-
-        document.getElementById("searchInput").addEventListener("keyup", filterPlants);
-        document.querySelectorAll(".category").forEach(button => {
-            button.addEventListener("click", function() {
-                document.querySelectorAll(".category").forEach(btn => btn.classList.remove("active"));
-                button.classList.add("active");
-                currentCategory = button.getAttribute("data-category");
-                filterPlants();
-            });
-        });
-
-        checkUserSession();
-        checkUrlViewParam();
-        syncRealtimeData();
-    </script>
-</body>
-</html>
+                const defaultImg = "
